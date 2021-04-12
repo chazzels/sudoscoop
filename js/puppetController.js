@@ -23,6 +23,7 @@ class PuppetController {
 		this.notifcation = false;
 		this.pagehistory = new Array();
 		this.screenshotCounter = 0;
+		this.screenshotDefaultName = "screenshot";
 		
 		this.log('Controller', 'Created');
 		this.log('Settings', 'Processing...');
@@ -37,7 +38,7 @@ class PuppetController {
 		
 	}
 	
-	// start the headless browser and open a page.
+	// start the headless browser and open the start page.
 	async initialConnection() {
 		
 		this.log('ConnectionInit', 'Connecting...');
@@ -66,12 +67,13 @@ class PuppetController {
 	}
 	
 	// take a screenshot for debugging or records. 
+	// name and type can be set. otherwise defaults to settings. 
 	async screenshot(name, mode) {
 		
 		if(typeof mode == 'undefined') { mode = 'jpeg'; }
 		
 		if(typeof name == 'undefined') { 
-			name = 'school'; 
+			name = this.screenshotDefaultName; 
 			this.screenshotCounter++;
 			name = name+this.screenshotCounter;
 		}
@@ -89,6 +91,12 @@ class PuppetController {
 		
 		console.log(this.logHeader+'::'+module+':', msg);
 		
+	}
+	
+	padNum(num, size) {
+		num = num.toString();
+		while (num.length < size) num = "0" + num;
+		return num;
 	}
 	
 }

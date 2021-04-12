@@ -5,7 +5,7 @@ require('dotenv').config();
 
 class StudentController extends PuppetController {
 	
-	constructor(cb) {
+	constructor() {
 		super('SudoSchool', 'https://purdueglobal.brightspace.com');
 	}
 	
@@ -51,6 +51,29 @@ class StudentController extends PuppetController {
 		let grades  = await this.page.$(StudentController.gradesNotification);
 		let disucssion  = await this.page.$(StudentController.disccusionNotification);
 		let email  = await this.page.$(StudentController.emailNotification);
+		
+	}
+	
+	// get all the classes the student has been in.
+	// THIS CURRENTLY CONTAINS DEVELOPMENT CODE. will click first class.
+	async getClasses() {
+		
+		let courseButton = await this.page.$('.d2l-navigation-s-course-menu .d2l-dropdown-opener');
+		await courseButton.click();
+		
+		// wait for classes to load and open.
+		await this.page.waitForTimeout(1000)
+		let course = await this.page.$$('.d2l-course-selector-item-name');
+		
+		
+		// INSERT - handle common actions in here. 
+		
+		// select a class.
+		// TODO allow for targeting of classees. 
+		await Promise.all([
+			course[0].click(),
+			this.page.waitForNavigation({ waitUntil: 'networkidle0' }),
+		]);
 		
 	}
 	

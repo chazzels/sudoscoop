@@ -1,8 +1,16 @@
 var StudentController = require('./studentController');
-var student = new StudentController();
 
-(async () => {
-	await student.initialConnection();
-	await student.studentSignIn();
-})();
+class SudoSchool extends StudentController {
+	constructor() {
+		super();
+		(async () => {
+			await this.initialConnection();
+			await this.studentSignIn();
+		})();
+		
+	}
+	
+}
+
+var instance = new SudoSchool();
 
