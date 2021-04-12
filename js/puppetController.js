@@ -5,12 +5,14 @@ class PuppetController {
 	
 	constructor(name, startPage) {
 		
+		// check arguments and set defaults. 
 		if(typeof name == 'undefined') {name = 'PuppetMaster';}
 		if(typeof startPage == 'undefined') {startPage = 'https://duckduckgo.com'}
+		
 		this.logHeader = name;
 		this.startPage = startPage;
 		
-		this.log('Boot', 'Starting...');
+		this.log('Initialization', 'Starting...');
 		this.log('Controller', 'Creating...');
 		
 		// setting object defaults. 
@@ -31,7 +33,7 @@ class PuppetController {
 		this.settings = this.settings.map(setting => setting.toLowerCase());
 		
 		this.log('Settings', 'Processed');
-		this.log('Boot', 'Started');
+		this.log('Initialization', 'Started');
 		
 	}
 	
