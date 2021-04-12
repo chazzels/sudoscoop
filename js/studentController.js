@@ -46,7 +46,7 @@ class StudentController extends PuppetController {
 	}
 	
 	// get the current status of the notifications. 
-	async checkNotifcations()  {
+	async checkNotifcationStatus()  {
 		
 		let grades  = await this.page.$(StudentController.gradesNotification);
 		let disucssion  = await this.page.$(StudentController.disccusionNotification);
@@ -56,7 +56,7 @@ class StudentController extends PuppetController {
 	
 	// get all the classes the student has been in.
 	// THIS CURRENTLY CONTAINS DEVELOPMENT CODE. will click first class.
-	async getClasses() {
+	async getClasses(classcode) {
 		
 		let courseButton = await this.page.$('.d2l-navigation-s-course-menu .d2l-dropdown-opener');
 		await courseButton.click();

@@ -75,7 +75,7 @@ class PuppetController {
 		if(typeof name == 'undefined') { 
 			name = this.screenshotDefaultName; 
 			this.screenshotCounter++;
-			name = name+this.screenshotCounter;
+			name = name+this.padNum(this.screenshotCounter, 3);
 		}
 		
 		let fileName = name+'.'+mode
