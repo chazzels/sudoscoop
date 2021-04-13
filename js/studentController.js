@@ -5,12 +5,11 @@ require('dotenv').config();
 
 class StudentController extends PuppetController {
 	
-	constructor() {
-		super('SudoSchool', 'https://purdueglobal.brightspace.com');
-	}
-	
-	// process the passed in settings to set the tasks to be completed.
-	async processSettings() {
+	constructor(name, startPage) {
+		
+		super(name, startPage);
+		
+		this.classes = new Array();
 		
 	}
 	
@@ -56,13 +55,17 @@ class StudentController extends PuppetController {
 	
 	// get all the classes the student has been in.
 	// THIS CURRENTLY CONTAINS DEVELOPMENT CODE. will click first class.
-	async getClasses(classcode) {
+	async getClassList(classcode) {
 		
+		// get the course select button so it can be clicked. 
+		// the list appears to be empty until the button is clicked. 
 		let courseButton = await this.page.$('.d2l-navigation-s-course-menu .d2l-dropdown-opener');
 		await courseButton.click();
 		
 		// wait for classes to load and open.
 		await this.page.waitForTimeout(1000)
+		
+		// query the element containers for the classes.
 		let course = await this.page.$$('.d2l-course-selector-item-name');
 		
 		
@@ -74,6 +77,13 @@ class StudentController extends PuppetController {
 			course[0].click(),
 			this.page.waitForNavigation({ waitUntil: 'networkidle0' }),
 		]);
+		
+	}
+	
+	// select a course for actions to take place for.
+	async gotoClass() {
+		
+		
 		
 	}
 	

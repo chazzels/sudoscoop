@@ -12,7 +12,6 @@ class PuppetController {
 		this.logHeader = name;
 		this.startPage = startPage;
 		
-		this.log('Initialization', 'Starting...');
 		this.log('Controller', 'Creating...');
 		
 		// setting object defaults. 
@@ -25,16 +24,13 @@ class PuppetController {
 		this.screenshotCounter = 0;
 		this.screenshotDefaultName = "screenshot";
 		
-		this.log('Controller', 'Created');
-		this.log('Settings', 'Processing...');
-		
 		// processing command line arguments and options for storage.
+		// force lower case on all the arguments.
 		this.settings = process.argv.slice(2);
 		if(this.settings.length < 1) { this.settings = [' '] }
 		this.settings = this.settings.map(setting => setting.toLowerCase());
 		
-		this.log('Settings', 'Processed');
-		this.log('Initialization', 'Started');
+		this.log('Controller', 'Created');
 		
 	}
 	
@@ -43,11 +39,7 @@ class PuppetController {
 		
 		this.log('ConnectionInit', 'Connecting...');
 		
-		if(this.browser === null) {
-			this.log('ConnectionInit', 'Creating Browser');
-			this.browser = await puppeteer.launch({headless:true});
-			this.log('ConnectionInit', 'Browser Created');
-		}
+		await this.createBrowser();
 		
 		this.page = await this.browser.newPage();
 		
@@ -56,6 +48,25 @@ class PuppetController {
 		this.log('ConnectionInit', 'Connected');
 		
 		this.screenshot();
+		
+	}
+	
+	// create a headless browser instance to be used. 
+	async createBrowser() {
+		
+		if(this.browser === null) {
+			
+			this.log('Browser', 'Creating...');
+			
+			this.browser = await puppeteer.launch({headless:true});
+			
+			this.log('Browser', 'Created');
+			
+		} else {
+			
+			this.log('Browser', 'Already Created')
+			
+		}
 		
 	}
 	
