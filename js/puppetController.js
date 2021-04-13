@@ -6,7 +6,7 @@ class PuppetController {
 	constructor(name, startPage) {
 		
 		// check arguments and set defaults. 
-		if(typeof name == 'undefined') {name = 'PuppetMaster';}
+		if(typeof name == 'undefined') {name = 'PuppetController';}
 		if(typeof startPage == 'undefined') {startPage = 'https://duckduckgo.com'}
 		
 		this.logHeader = name;
