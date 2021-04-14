@@ -1,4 +1,5 @@
-var StudentController = require('./core/studentController');
+const StudentController = require('./core/studentController');
+const ArgumentProcessor = require('./core/argumentProcessor');
 
 class SudoSchool extends StudentController {
 	constructor() {
@@ -18,44 +19,9 @@ class SudoSchool extends StudentController {
 	// process the passed in settings to set the tasks to be completed.
 	processSettings() {
 		
-		let tempSetting;
-		
 		this.log('Settings', 'Processing...');
 		
-		for(var i=0;i<this.settings.length;i++) {
-			
-			if(this.settings[i] == SudoSchool.VIRALPOST) {
-				
-				this.jobs.push({
-					name: SudoSchool.VIRALPOST, 
-					classCode: this.settings[this.settings.indexOf(SudoSchool.VIRALPOST)+1],
-					target: this.settings[this.settings.indexOf(SudoSchool.VIRALPOST)+2],
-				});
-				
-				i = i + 2;
-				
-			} else if(this.settings[i] == SudoSchool.READALLPOSTS) {
-				
-				this.jobs.push({
-					name: SudoSchool.READALLPOSTS, 
-					classCode: this.settings[this.settings.indexOf(SudoSchool.READALLPOSTS)+1],
-					target: this.settings[this.settings.indexOf(SudoSchool.READALLPOSTS)+2],
-				});
-				
-				i = i + 2;
-				
-			} else if(this.settings[i] == SudoSchool.READALLCONTENT){
-				
-				this.jobs.push({
-					name: SudoSchool.READALLCONTENT, 
-					classCode: this.settings[this.settings.indexOf(SudoSchool.READALLCONTENT)+1],
-				});
-				
-				i = i + 1;
-				
-			}
-			
-		}
+		this.jobs = new ArgumentProcessor(this.settings);
 		
 		this.log('Settings', 'Processed');
 		
