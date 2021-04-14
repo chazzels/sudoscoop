@@ -51,6 +51,16 @@ class PuppetController {
 		
 	}
 	
+	async refresh() {
+		
+		this.log('Controller', 'Refreshing...');
+		
+		await this.page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
+		
+		this.log('Controller', 'Refreshed');
+		
+	}
+	
 	// create a headless browser instance to be used. 
 	async createBrowser() {
 		
@@ -108,6 +118,10 @@ class PuppetController {
 		num = num.toString();
 		while (num.length < size) num = "0" + num;
 		return num;
+	}
+	
+	getRandomInt(max) {
+		return Math.floor(Math.random() * max);
 	}
 	
 }
