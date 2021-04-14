@@ -1,4 +1,4 @@
-var StudentController = require('./studentController');
+var StudentController = require('./core/studentController');
 
 class SudoSchool extends StudentController {
 	constructor() {
@@ -22,32 +22,38 @@ class SudoSchool extends StudentController {
 		
 		this.log('Settings', 'Processing...');
 		
-		if(this.settings.includes(SudoSchool.VIRALPOST)) {
+		for(var i=0;i<this.settings.length;i++) {
 			
-			this.jobs.push({
-				name: SudoSchool.VIRALPOST, 
-				classCode: this.settings[this.settings.indexOf(SudoSchool.VIRALPOST)+1],
-				target: this.settings[this.settings.indexOf(SudoSchool.VIRALPOST)+2],
-			});
-			
-		}
-		
-		if(this.settings.includes(SudoSchool.READALLPOSTS)) {
-			
-			this.jobs.push({
-				name: SudoSchool.READALLPOSTS, 
-				classCode: this.settings[this.settings.indexOf(SudoSchool.READALLPOSTS)+1],
-				target: this.settings[this.settings.indexOf(SudoSchool.READALLPOSTS)+2],
-			});
-			
-		} 
-		
-		if(this.settings.includes(SudoSchool.READALLCONTENT)) {
-			
-			this.jobs.push({
-				name: SudoSchool.READALLCONTENT, 
-				classCode: this.settings[this.settings.indexOf(SudoSchool.READALLCONTENT)+1],
-			});
+			if(this.settings[i] == SudoSchool.VIRALPOST) {
+				
+				this.jobs.push({
+					name: SudoSchool.VIRALPOST, 
+					classCode: this.settings[this.settings.indexOf(SudoSchool.VIRALPOST)+1],
+					target: this.settings[this.settings.indexOf(SudoSchool.VIRALPOST)+2],
+				});
+				
+				i = i + 2;
+				
+			} else if(this.settings[i] == SudoSchool.READALLPOSTS) {
+				
+				this.jobs.push({
+					name: SudoSchool.READALLPOSTS, 
+					classCode: this.settings[this.settings.indexOf(SudoSchool.READALLPOSTS)+1],
+					target: this.settings[this.settings.indexOf(SudoSchool.READALLPOSTS)+2],
+				});
+				
+				i = i + 2;
+				
+			} else if(this.settings[i] == SudoSchool.READALLCONTENT){
+				
+				this.jobs.push({
+					name: SudoSchool.READALLCONTENT, 
+					classCode: this.settings[this.settings.indexOf(SudoSchool.READALLCONTENT)+1],
+				});
+				
+				i = i + 1;
+				
+			}
 			
 		}
 		
