@@ -4,6 +4,10 @@ const crypto = require('crypto')
 const shasum = crypto.createHash('sha256')
 const PuppetController = require('../core/puppetController');
 
+//TODO: collect information about current products. 
+//TODO: price track
+//TODO: make report of products added and removed or out of stock.
+//TODO: send message for notification.
 class CulturaController extends PuppetController {
 	
 	constructor(name, startPage) {
@@ -12,6 +16,9 @@ class CulturaController extends PuppetController {
 		
 		this.inventory = new Map();
 		this.lastHash = null;
+		
+		this.scanCount = -1;
+		this.noChangeStreak = 0;
 		
 		(async () => {
 			await this.initialConnection();
@@ -24,7 +31,13 @@ class CulturaController extends PuppetController {
 	// run the loop that continues to check. 
 	async run() {
 		
-		await this.scanInventory();
+		let hash = await this.scanInventory();
+		await this.checkHash(hash);
+		// save data..
+		// compare changes if any..
+		// log changes.
+		
+		await this.page.waitForTimeout(10000);
 		await this.refresh();
 		
 		this.run();
@@ -50,45 +63,75 @@ class CulturaController extends PuppetController {
 			() => Array.from(document.querySelectorAll('span[data-hook="product-item-out-of-stock"]'), element => element.textContent)
 		);
 		
-		let hash = await this.createFingerprint(names, oos);
+		this.log('InventoryScan', 'Completed');
+		
+		this.scanCount += 1;
+		
+		return await this.createFingerprint(names, oos);
+		
+	}
+	
+	// compare the hashes to determine what has happened to the inventory.
+	async checkHash(hash) {
 		
 		if(this.inventory.has(hash) && this.lastHash == hash) {
+			
 			// do nothing... no change...
-			this.log('InventoryChange', 'No Change');
+			this.log('InventoryChange', 'No Change x'+this.noChangeStreak+' ('+this.scanCount+')');
+			this.noChangeStreak += 1;
+			
 		} else if(this.inventory.has(hash)) { 
-			// old hash
+			
+			// old hash match
 			this.log('MapCheck', 'Old Hash');
-			this.log('InventoryChange', 'No Change');
+			this.log('InventoryChange', 'Old State???');
+			this.noChangeStreak = 0;
+			
+		} else if(this.lastHash == null) { 
+			
+			// first hash
+			this.log('MapCheck', 'First Hash');
+			this.inventory.set(hash, {});
+			this.noChangeStreak += 1;
+			
 		} else {
+			
 			// new hash
-			// TODO: build out info for current sstate to track changes.
 			this.log('MapCheck', 'New Hash');
 			this.log('InventoryChange', 'A CHANGE HAS BEEN DETECTED!!!');
 			this.inventory.set(hash, {});
+			this.noChangeStreak = 0;
+			
 		}
 		
 		this.lastHash = hash;
-		
-		this.log('InventoryScan', 'Completed');
-		
-		await this.page.waitForTimeout(10000);
 		
 	}
 	
 	// check that there are no duplicate names.
 	// TODO: actually compare the values.
 	nameCheck(names) {
+		
 		let namecheck = new Map();
+		
 		names.forEach(element => namecheck.set(element, 1));
+		
+		if(namecheck.size != names.length) {
+			this.log('ProductNames', 'Possible duplicate product names');
+		}
+		
 		return namecheck;
+		
 	}
 	
 	
 	// create a unique string for the hash. 
 	nameMash(names, namecheck, oos, namemash) {
+		
 		return names.length.toString() + '-' + namecheck.size.toString() 
 			+ '-' + oos.length.toString()
 			+ namemash;
+			
 	}
 	
 	// create a hash of the results.

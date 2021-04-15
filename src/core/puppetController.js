@@ -47,8 +47,6 @@ class PuppetController {
 		
 		this.log('ConnectionInit', 'Connected');
 		
-		this.screenshot();
-		
 	}
 	
 	async refresh() {
