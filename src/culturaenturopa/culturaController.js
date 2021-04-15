@@ -36,9 +36,7 @@ class CulturaController extends PuppetController {
 	async run() {
 		
 		let scanData = await this.scanInventory();
-		console.log(scanData);
 		await this.checkHash(this.createFingerprint(this.names, this.oos));
-		// save data..
 		// compare changes if any..
 		// log changes.
 		
@@ -90,7 +88,7 @@ class CulturaController extends PuppetController {
 	}
 	
 	// compare the hashes to determine what has happened to the inventory.
-	async checkHash(hash) {
+	async checkHash(hash, data) {
 		
 		if(this.fingerprints.has(hash) && this.lastHash == hash) {
 			
@@ -109,7 +107,7 @@ class CulturaController extends PuppetController {
 			
 			// first hash
 			this.log('MapCheck', 'First Hash');
-			this.fingerprints.set(hash, {});
+			this.fingerprints.set(hash, data);
 			this.noChangeStreak += 1;
 			
 		} else {
@@ -117,7 +115,7 @@ class CulturaController extends PuppetController {
 			// new hash
 			this.log('MapCheck', 'New Hash');
 			this.log('InventoryChange', 'A CHANGE HAS BEEN DETECTED!!!');
-			this.fingerprints.set(hash, {});
+			this.fingerprints.set(hash, data);
 			this.noChangeStreak = 0;
 			
 		}
