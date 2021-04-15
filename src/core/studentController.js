@@ -38,7 +38,7 @@ class StudentController extends PuppetController {
 		
 		this.log('SignIn', 'Completed');
 		
-		this.screenshot();
+		await this.screenshot();
 		
 		return true;
 		
@@ -48,8 +48,14 @@ class StudentController extends PuppetController {
 	async checkNotifcationStatus()  {
 		
 		let grades  = await this.page.$(StudentController.gradesNotification);
-		let disucssion  = await this.page.$(StudentController.disccusionNotification);
+		let disucssion  = await this.page.$(StudentController.discussionNotification);
 		let email  = await this.page.$(StudentController.emailNotification);
+		
+		await email.click();
+		await disucssion.click();
+		
+		await this.wait(4000);
+		await this.screenshot();
 		
 	}
 	
@@ -63,7 +69,7 @@ class StudentController extends PuppetController {
 		await courseButton.click();
 		
 		// wait for classes to load and open.
-		await this.page.waitForTimeout(1000)
+		await this.page.waitForTimeout(1000);
 		
 		// query the element containers for the classes.
 		let course = await this.page.$$('.d2l-course-selector-item-name');

@@ -10,7 +10,7 @@ class SudoSchool extends StudentController {
 		(async () => {
 			await this.processArguments();
 			await this.initialConnection();
-			//await this.studentSignIn();
+			await this.studentSignIn();
 			await this.jobHandler();
 		})();
 		
@@ -24,7 +24,6 @@ class SudoSchool extends StudentController {
 		this.jobs = new ArgumentProcessor(this.args);
 		
 		if(this.jobs.length == 0) {
-			this.jobs = [];
 			this.log('ArgumentProcessor', 'Arguments Passed. No valid options found.');
 		}
 		
@@ -37,6 +36,8 @@ class SudoSchool extends StudentController {
 	async jobHandler() {
 		
 		this.log('JobHandler', this.jobs);
+		
+		await this.checkNotifcationStatus();
 		
 	}
 	

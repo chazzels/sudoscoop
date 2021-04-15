@@ -87,6 +87,12 @@ class PuppetController {
 		
 	}
 	
+	async wait(ms) {
+		
+		await this.page.waitForTimeout(ms);
+		
+	}
+	
 	// take a screenshot for debugging or records. 
 	// name and type can be set. otherwise defaults to settings. 
 	async screenshot(name, mode) {
