@@ -47,6 +47,10 @@ class ArgumentProcessor {
 			
 		}
 		
+		if(this.jobs.length = 0 && this.settings.length > 0) {
+			this.log('ArgumentProcessor', 'Arguments Passed. No valid options found.');
+		}
+		
 		return this.jobs;
 		
 	}
