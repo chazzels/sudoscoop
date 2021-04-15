@@ -14,7 +14,11 @@ class CulturaController extends PuppetController {
 		
 		super(name, startPage);
 		
-		this.inventory = new Map();
+		this.items = new Array();
+		this.names = new Array();
+		this.oos = new Array();
+		
+		this.fingerprints = new Map();
 		this.lastHash = null;
 		
 		this.scanCount = -1;
@@ -31,8 +35,9 @@ class CulturaController extends PuppetController {
 	// run the loop that continues to check. 
 	async run() {
 		
-		let hash = await this.scanInventory();
-		await this.checkHash(hash);
+		let scanData = await this.scanInventory();
+		console.log(scanData);
+		await this.checkHash(this.createFingerprint(this.names, this.oos));
 		// save data..
 		// compare changes if any..
 		// log changes.
@@ -55,11 +60,24 @@ class CulturaController extends PuppetController {
 		
 		this.log('InventoryScan', 'Running...');
 		
-		let names = await this.page.evaluate(
+		this.items = await this.page.evaluate(
+			() => Array.from(document.querySelectorAll('li[data-hook="product-list-grid-item"]'), element => element.textContent)
+		);
+		
+		// clean up the collected data from the products.
+		for(var i=0; i < this.items.length; i++) {
+			this.items[i] = this.items[i].replace('Quick View', '')
+				.replace(/\(.{0,100}\)/g, '')
+				.replace('$', ' @ $')
+				.replace('Out of stock', ' @ OutOfStock')
+				.replace('  ', ' ');
+		}
+		
+		this.names = await this.page.evaluate(
 			() => Array.from(document.querySelectorAll('h3[data-hook="product-item-name"]'), element => element.textContent)
 		);
 		
-		let oos = await this.page.evaluate(
+		this.oos = await this.page.evaluate(
 			() => Array.from(document.querySelectorAll('span[data-hook="product-item-out-of-stock"]'), element => element.textContent)
 		);
 		
@@ -67,20 +85,20 @@ class CulturaController extends PuppetController {
 		
 		this.scanCount += 1;
 		
-		return await this.createFingerprint(names, oos);
+		return this.items;
 		
 	}
 	
 	// compare the hashes to determine what has happened to the inventory.
 	async checkHash(hash) {
 		
-		if(this.inventory.has(hash) && this.lastHash == hash) {
+		if(this.fingerprints.has(hash) && this.lastHash == hash) {
 			
 			// do nothing... no change...
 			this.log('InventoryChange', 'No Change x'+this.noChangeStreak+' ('+this.scanCount+')');
 			this.noChangeStreak += 1;
 			
-		} else if(this.inventory.has(hash)) { 
+		} else if(this.fingerprints.has(hash)) { 
 			
 			// old hash match
 			this.log('MapCheck', 'Old Hash');
@@ -91,7 +109,7 @@ class CulturaController extends PuppetController {
 			
 			// first hash
 			this.log('MapCheck', 'First Hash');
-			this.inventory.set(hash, {});
+			this.fingerprints.set(hash, {});
 			this.noChangeStreak += 1;
 			
 		} else {
@@ -99,7 +117,7 @@ class CulturaController extends PuppetController {
 			// new hash
 			this.log('MapCheck', 'New Hash');
 			this.log('InventoryChange', 'A CHANGE HAS BEEN DETECTED!!!');
-			this.inventory.set(hash, {});
+			this.fingerprints.set(hash, {});
 			this.noChangeStreak = 0;
 			
 		}
