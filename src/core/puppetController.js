@@ -17,7 +17,7 @@ class PuppetController {
 		// setting object defaults. 
 		this.browser = null;
 		this.page = {};
-		this.settings = new Array();
+		this.args = new Array();
 		this.userId = null;
 		this.notifcation = false;
 		this.pagehistory = new Array();
@@ -26,9 +26,9 @@ class PuppetController {
 		
 		// processing command line arguments and options for storage.
 		// force lower case on all the arguments.
-		this.settings = process.argv.slice(2);
-		if(this.settings.length < 1) { this.settings = [' '] }
-		this.settings = this.settings.map(setting => setting.toLowerCase());
+		this.args = process.argv.slice(2);
+		if(this.args.length < 1) { this.args = [' '] }
+		this.args = this.args.map(arg => arg.toLowerCase());
 		
 		this.log('Controller', 'Created');
 		

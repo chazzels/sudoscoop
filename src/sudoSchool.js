@@ -6,24 +6,29 @@ class SudoSchool extends StudentController {
 		super('SudoSchool', 'https://purdueglobal.brightspace.com');
 		
 		this.jobs = new Array();
-		this.processSettings();
 		
 		(async () => {
+			await this.processArguments();
 			await this.initialConnection();
-			await this.studentSignIn();
+			//await this.studentSignIn();
 			await this.jobHandler();
 		})();
 		
 	}
 	
 	// process the passed in settings to set the tasks to be completed.
-	processSettings() {
+	processArguments() {
 		
-		this.log('Settings', 'Processing...');
+		this.log('Arguments', 'Processing...');
 		
-		this.jobs = new ArgumentProcessor(this.settings);
+		this.jobs = new ArgumentProcessor(this.args);
 		
-		this.log('Settings', 'Processed');
+		if(this.jobs.length == 0) {
+			this.jobs = [];
+			this.log('ArgumentProcessor', 'Arguments Passed. No valid options found.');
+		}
+		
+		this.log('Arguments', 'Processed');
 		
 	}
 	
