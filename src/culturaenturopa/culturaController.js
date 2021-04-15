@@ -94,7 +94,6 @@ class CulturaController extends PuppetController {
 	// create a hash of the results.
 	createFingerprint(names, oos) {
 		
-		
 		let namecheck = new Map();
 		names.forEach(element => namecheck.set(element, 1));
 		
