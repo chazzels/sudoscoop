@@ -1,12 +1,14 @@
 // controller for interacting with school portal and perform default actions. 
 const puppeteer = require('puppeteer');
-const crypto = require('crypto')
-const shasum = crypto.createHash('sha256')
+const crypto = require('crypto');
+const shasum = crypto.createHash('sha256');
+
 const PuppetController = require('../core/puppetController');
 
 //TODO: collect information about current products. 
-//TODO: price track
+//TODO: price track.
 //TODO: make report of products added and removed or out of stock.
+//TODO: store a master list of products for import on start. 
 //TODO: send message for notification.
 class CulturaController extends PuppetController {
 	
@@ -14,15 +16,26 @@ class CulturaController extends PuppetController {
 		
 		super(name, startPage);
 		
-		this.items = new Array();
+		this.items = new Map();
+		this.master = new Map();
+		
+		// not needed please remove.
+		// TODO: remove when fingerprinting is updated. 
 		this.names = new Array();
 		this.oos = new Array();
 		
 		this.fingerprints = new Map();
 		this.lastHash = null;
 		
+		this.defaultRefreshTime = 10000
+		this.refreshTime = typeof this.args[0] == 'number' ? this.defaultRefreshTime : this.args[0];
 		this.scanCount = -1;
 		this.noChangeStreak = 0;
+		
+		if(typeof this.args[0] == 'number') {
+			this.defaultRefreshTime = this.args[0];
+		}
+		console.log(this.refreshTime);
 		
 		(async () => {
 			await this.initialConnection();
@@ -40,7 +53,7 @@ class CulturaController extends PuppetController {
 		// compare changes if any..
 		// log changes.
 		
-		await this.page.waitForTimeout(10000);
+		await this.page.waitForTimeout(this.refreshTime);
 		await this.refresh();
 		
 		this.run();
@@ -58,32 +71,85 @@ class CulturaController extends PuppetController {
 		
 		this.log('InventoryScan', 'Running...');
 		
-		this.items = await this.page.evaluate(
+		// scrap result from the page. 
+		let raw = await this.page.evaluate(
 			() => Array.from(document.querySelectorAll('li[data-hook="product-list-grid-item"]'), element => element.textContent)
 		);
 		
-		// clean up the collected data from the products.
-		for(var i=0; i < this.items.length; i++) {
-			this.items[i] = this.items[i].replace('Quick View', '')
-				.replace(/\(.{0,100}\)/g, '')
-				.replace('$', ' @ $')
-				.replace('Out of stock', ' @ OutOfStock')
-				.replace('  ', ' ');
-		}
+		// convert the result for processing.
+		let items = this.processSourceData(raw);
 		
+		
+		// TODO: remove after the fingerprint process has been updated.
 		this.names = await this.page.evaluate(
 			() => Array.from(document.querySelectorAll('h3[data-hook="product-item-name"]'), element => element.textContent)
 		);
-		
 		this.oos = await this.page.evaluate(
 			() => Array.from(document.querySelectorAll('span[data-hook="product-item-out-of-stock"]'), element => element.textContent)
 		);
+		
 		
 		this.log('InventoryScan', 'Completed');
 		
 		this.scanCount += 1;
 		
 		return this.items;
+		
+	}
+	
+	processSourceData(source) {
+		
+		// clean up the collected data from the products.
+		for(var i=0; i < source.length; i++) {
+			source[i] = source[i].replace('Quick View', '')
+				.replace(/\(.{0,100}\)/g, '')
+				.replace('$', ' @ $')
+				.replace('Out of stock', ' @ OutOfStock')
+				.replace('  ', ' ');
+		}
+		
+		// split string into an array for easier handling.
+		for(var i=0; i < source.length; i++) {
+			source[i] = source[i].split('@');
+			source[i][0] = source[i][0].trim();
+			source[i][1] = source[i][1].trim();
+		}
+		
+		
+		// convert the array into a map for easier comparison.
+		for(var i=0; i < source.length; i++) {
+			
+			let mapData = {
+				price: source[i][1],
+				time: Date.now(),
+			};
+			
+			this.items.set(source[i][0], mapData);
+			
+			// check if item has already been seen.
+			if(this.master.has(source[i][0])) {
+				
+				// check for price difference from last scan. 
+				if(this.master.get(source[i][0]).price == this.items.get(source[i][0]).price) {
+					
+					//console.log('match');
+					
+				} else {
+					
+					//console.log('change');
+					
+				}
+				
+			} else {
+				
+				this.log('MasterList', 'Item Added: '+source[i][0])
+				this.master.set(source[i][0], mapData);
+				
+			}
+			
+		}
+		
+		return source;
 		
 	}
 	
@@ -142,6 +208,7 @@ class CulturaController extends PuppetController {
 	
 	
 	// create a unique string for the hash. 
+	// TODO: need to updat to use the new map function. 
 	nameMash(names, namecheck, oos) {
 		
 		// Make a string of all the first letters of products. 
@@ -155,6 +222,7 @@ class CulturaController extends PuppetController {
 	}
 	
 	// create a hash of the results.
+	// TODO: update to use the map object. 
 	createFingerprint(names, oos) {
 		
 		let namecheck = this.nameCheck(names);
