@@ -18,12 +18,6 @@ class CulturaController extends PuppetController {
 		
 		this.items = new Map();
 		this.master = new Map();
-		
-		// not needed please remove.
-		// TODO: remove when fingerprinting is updated. 
-		this.names = new Array();
-		this.oos = new Array();
-		
 		this.fingerprints = new Map();
 		this.lastHash = null;
 		
@@ -35,7 +29,6 @@ class CulturaController extends PuppetController {
 		if(typeof this.args[0] == 'number') {
 			this.defaultRefreshTime = this.args[0];
 		}
-		console.log(this.refreshTime);
 		
 		(async () => {
 			await this.initialConnection();
@@ -44,12 +37,11 @@ class CulturaController extends PuppetController {
 		
 	}
 	
-	
 	// run the loop that continues to check. 
 	async run() {
 		
 		let scanData = await this.scanInventory();
-		await this.checkHash(this.createFingerprint(this.names, this.oos));
+		await this.checkHash(this.createFingerprint());
 		// compare changes if any..
 		// log changes.
 		
@@ -59,7 +51,6 @@ class CulturaController extends PuppetController {
 		this.run();
 		
 	}
-	
 	
 	// collect inventory information. 
 	async scanInventory() {
@@ -79,16 +70,6 @@ class CulturaController extends PuppetController {
 		// convert the result for processing.
 		let items = this.processSourceData(raw);
 		
-		
-		// TODO: remove after the fingerprint process has been updated.
-		this.names = await this.page.evaluate(
-			() => Array.from(document.querySelectorAll('h3[data-hook="product-item-name"]'), element => element.textContent)
-		);
-		this.oos = await this.page.evaluate(
-			() => Array.from(document.querySelectorAll('span[data-hook="product-item-out-of-stock"]'), element => element.textContent)
-		);
-		
-		
 		this.log('InventoryScan', 'Completed');
 		
 		this.scanCount += 1;
@@ -104,7 +85,7 @@ class CulturaController extends PuppetController {
 			source[i] = source[i].replace('Quick View', '')
 				.replace(/\(.{0,100}\)/g, '')
 				.replace('$', ' @ $')
-				.replace('Out of stock', ' @ OutOfStock')
+				.replace('Out of stock', ' @ '+CulturaController.OutOfStock)
 				.replace('  ', ' ');
 		}
 		
@@ -115,6 +96,7 @@ class CulturaController extends PuppetController {
 			source[i][1] = source[i][1].trim();
 		}
 		
+		this.items.clear();
 		
 		// convert the array into a map for easier comparison.
 		for(var i=0; i < source.length; i++) {
@@ -126,26 +108,7 @@ class CulturaController extends PuppetController {
 			
 			this.items.set(source[i][0], mapData);
 			
-			// check if item has already been seen.
-			if(this.master.has(source[i][0])) {
-				
-				// check for price difference from last scan. 
-				if(this.master.get(source[i][0]).price == this.items.get(source[i][0]).price) {
-					
-					//console.log('match');
-					
-				} else {
-					
-					//console.log('change');
-					
-				}
-				
-			} else {
-				
-				this.log('MasterList', 'Item Added: '+source[i][0])
-				this.master.set(source[i][0], mapData);
-				
-			}
+			this.checkMasterList(source[i][0], mapData);
 			
 		}
 		
@@ -153,13 +116,45 @@ class CulturaController extends PuppetController {
 		
 	}
 	
+	checkMasterList(item, mapData) {
+		
+		// check if item has already been seen.
+		if(this.master.has(item)) {
+			
+			// check for price difference from last scan. 
+			if(this.master.get(item).price == this.items.get(item).price) {
+				
+				//console.log('match');
+				
+			} else {
+				
+				// log to change history.
+				//console.log('change');
+				
+			}
+			
+		} else {
+			
+			this.log('MasterList', 'Item Added: '+item)
+			this.master.set(item, mapData);
+			
+		}
+		
+	}
+	
 	// compare the hashes to determine what has happened to the inventory.
-	async checkHash(hash, data) {
+	checkHash(hash, data) {
+		
+		this.log('InventoryCheck', 
+			this.items.size.toString()+'/'
+			+(this.items.size-this.countOutOfStock())
+			+'(items/instock)');
 		
 		if(this.fingerprints.has(hash) && this.lastHash == hash) {
 			
 			// do nothing... no change...
-			this.log('InventoryChange', 'No Change x'+this.noChangeStreak+' ('+this.scanCount+')');
+			this.log('InventoryChange', 
+				'No Change x'+this.noChangeStreak+' ('+this.scanCount+')');
 			this.noChangeStreak += 1;
 			
 		} else if(this.fingerprints.has(hash)) { 
@@ -190,59 +185,52 @@ class CulturaController extends PuppetController {
 		
 	}
 	
-	// check that there are no duplicate names.
-	// TODO: actually compare the values.
-	nameCheck(names) {
-		
-		let namecheck = new Map();
-		
-		names.forEach(element => namecheck.set(element, 1));
-		
-		if(namecheck.size != names.length) {
-			this.log('ProductNames', 'Possible duplicate product names');
-		}
-		
-		return namecheck;
-		
-	}
-	
-	
 	// create a unique string for the hash. 
-	// TODO: need to updat to use the new map function. 
-	nameMash(names, namecheck, oos) {
+	nameMash() {
 		
 		// Make a string of all the first letters of products. 
 		let namemash = '';
-		names.forEach(element => namemash = namemash.concat(element.substring(0, 1)));
+		this.items.forEach((value, key, map)=> 
+			namemash = namemash.concat(key.substring(0, 1)));
 		
-		return names.length.toString() + '-' + namecheck.size.toString() 
-			+ '-' + oos.length.toString()
+		namemash = this.items.size.toString() + '-'
+			+ this.countOutOfStock() + '-'
 			+ namemash;
-			
+		
+		return namemash;
+		
+	}
+	
+	// count the number of out of stock items. 
+	countOutOfStock() {
+		
+		let oos = 0;
+		
+		this.items.forEach(function(value, key, map) {
+			if(value.price == CulturaController.OutOfStock) {
+				oos++;
+			} 
+		});
+		
+		return oos
+		
 	}
 	
 	// create a hash of the results.
-	// TODO: update to use the map object. 
-	createFingerprint(names, oos) {
+	createFingerprint() {
 		
-		let namecheck = this.nameCheck(names);
-		
-		// add more information to the string.
-		let namemash = this.nameMash(names, namecheck, oos);
-		
-		this.log('InventoryCheck', names.length.toString()+'/'+(names.length-oos.length)
-			+' (items/instock)');
-		
-		return this.createHash(namemash);
+		return this.createHash(this.nameMash());
 		
 	}
 	
 	// create a SHA256 hash from an input string.
 	createHash(namemash) {
-		return crypto.createHash("sha256").update(namemash).digest().toString('hex');
+		return crypto.createHash("sha256").update(namemash)
+			.digest().toString('hex');
 	}
 	
 }
+CulturaController.OutOfStock = 'OutOfStock';
 CulturaController.itemContainer = 'li[data-hook="product-list-grid-item"]';
 CulturaController.itemName = 'h3[data-hook="product-item-name"]';
 CulturaController.itemOutOfStock = 'span[data-hook="product-item-out-of-stock"]';
