@@ -142,7 +142,11 @@ class CulturaController extends PuppetController {
 	
 	
 	// create a unique string for the hash. 
-	nameMash(names, namecheck, oos, namemash) {
+	nameMash(names, namecheck, oos) {
+		
+		// Make a string of all the first letters of products. 
+		let namemash = '';
+		names.forEach(element => namemash = namemash.concat(element.substring(0, 1)));
 		
 		return names.length.toString() + '-' + namecheck.size.toString() 
 			+ '-' + oos.length.toString()
@@ -153,15 +157,10 @@ class CulturaController extends PuppetController {
 	// create a hash of the results.
 	createFingerprint(names, oos) {
 		
-		let namecheck = new Map();
-		names.forEach(element => namecheck.set(element, 1));
-		
-		// Make a string of all the first letters of products. 
-		let namemash = '';
-		names.forEach(element => namemash = namemash.concat(element.substring(0, 1)));
+		let namecheck = this.nameCheck(names);
 		
 		// add more information to the string.
-		namemash = this.nameMash(names, namecheck, oos, namemash);
+		let namemash = this.nameMash(names, namecheck, oos);
 		
 		this.log('InventoryCheck', names.length.toString()+'/'+(names.length-oos.length)
 			+' (items/instock)');
