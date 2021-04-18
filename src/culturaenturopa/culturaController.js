@@ -119,7 +119,7 @@ class CulturaController extends PuppetController {
 		// Make a string of all the first letters of products. 
 		let namemash = '';
 		
-		tracker.items.forEach((value, key, map)=> 
+		tracker.items.forEach((value, key)=> 
 			namemash = namemash.concat(key.substring(0, 1)));
 		
 		

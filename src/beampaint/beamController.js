@@ -6,10 +6,11 @@ var tracker;
 //TODO: send message for notification.
 class BeamWatcher extends PuppetController {
 	
-	constructor(name, startPage) {
+	constructor(name, startPage, targets) {
 		
 		super(name, startPage);
 		
+		this.targets = targets;
 		this.debugLogs = true;
 		
 		// set up the invetory trackers. 
@@ -34,7 +35,15 @@ class BeamWatcher extends PuppetController {
 		
 		// #AddToCart
 		
-		await this.scanInventory();
+		let self = this;
+		
+		for(var i=0; i<this.targets.length; i++) {
+			
+			await this.page.goto(this.targets[i]);
+			
+			await this.scanInventory()
+			
+		};
 		
 		await tracker.check(this.nameMash());
 		
@@ -50,41 +59,75 @@ class BeamWatcher extends PuppetController {
 	async scanInventory() {
 		
 		let self = this;
+		let productName; 
+		let name;
 		
 		this.log('InventoryScan', 'Running...');
 		
-		// scrap result from the page. 
-		let raw = await this.page.evaluate(
-			() => Array.from(
-				document.querySelectorAll('#ProductSelect-product-template-option-0 option'), 
-				element => element.getAttribute('value')
-			)
-		);
+		// get product name.
+		productName = await self.page.$('.product-single__title')
 		
-		for(var i=0; i < raw.length; i++) {
+		if(productName != null) {
 			
-			await self.page.select('#ProductSelect-product-template-option-0', raw[i]);
+			name = await self.page.evaluate(el => el.textContent, productName);
 			
-			//await self.wait(1000);
+			// scrap options from the page. 
+			let raw = await self.page.evaluate(
+				() => Array.from(
+					document.querySelectorAll('#ProductSelect-product-template-option-0 option'), 
+					element => element.getAttribute('value')
+				)
+			);
 			
-			let data = await self.page.url().split('?')[1].split('=')[1];
+			let data = new Array();
 			
-			tracker.items.set(raw[i], data);
+			// get the options for the product.
+			for(var i=0; i < raw.length; i++) {
+				
+				let option = await self.page.select('#ProductSelect-product-template-option-0', raw[i]);
+				
+				data.push({
+					option: option[0],
+					id: await self.page.url().split('?')[1].split('=')[1],
+				});
+				
+			}
+			
+			tracker.items.set(name, data);
+			
+			self.scanCount += 1;
+			
+			this.log('InventoryScan', 'Completed');
+			
+			return true;
+			
+		} else {
+			
+			this.log('InventoryScan', 'Failed');
+			
+			return false;
 			
 		}
 		
-		this.log('InventoryScan', 'Completed');
 		
-		this.scanCount += 1;
 		
 	}
 	
 	nameMash() {
 		
-		let namemash = tracker.items.size.toString() + '-';
+		let namemash = tracker.items.size.toString();
 		
-		tracker.items.forEach((value, key)=> 
-			namemash = namemash.concat(key.substring(0, 2).toUpperCase()) + value );
+		tracker.items.forEach(function(value, key) {
+			
+			namemash += key.substring(0,2).toUpperCase();
+			
+			value.forEach(function(value, key) {
+				
+				namemash += value.id.toString();
+				
+			});
+			
+		});
 		
 		return namemash;
 		
@@ -94,4 +137,9 @@ class BeamWatcher extends PuppetController {
 BeamWatcher.ColorSelect = '#ProductSelect-product-template-option-0';
 BeamWatcher.ColorOption = 'option';
 
-var watcher = new BeamWatcher('BeamWatcher', 'https://beampaints.myshopify.com/collections/reclaimed-cedar-palettes/products/birch-mini-cookie-palette');
+let targets = [
+	'https://beampaints.myshopify.com/collections/reclaimed-cedar-palettes/products/birch-palettes',
+	'https://beampaints.myshopify.com/collections/reclaimed-cedar-palettes/products/birch-mini-cookie-palette',
+];
+
+var watcher = new BeamWatcher('BeamWatcher', 'https://beampaints.myshopify.com/', targets);
