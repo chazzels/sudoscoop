@@ -37,6 +37,8 @@ class SudoSchool extends StudentController {
 		
 		this.log('JobHandler', this.jobs);
 		
+		
+		// development testing this functionality. 
 		await this.checkNotifcationStatus();
 		
 	}

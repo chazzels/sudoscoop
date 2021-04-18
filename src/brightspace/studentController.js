@@ -1,5 +1,5 @@
 // controller for interacting with school portal and perform default actions. 
-const PuppetController = require('./puppetController');
+const PuppetController = require('../core/puppetController');
 require('dotenv').config();
 
 class StudentController extends PuppetController {

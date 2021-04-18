@@ -10,15 +10,16 @@ class CulturaController extends PuppetController {
 		
 		super(name, startPage);
 		
+		// set up the invetory trackers. 
 		tracker = new InventoryTracker(name);
 		
-		this.defaultRefreshTime = 10000
-		this.refreshTime = typeof this.args[0] == 'number' ? this.defaultRefreshTime : this.args[0];
-		
+		// configure the refresh timeout.
+		this.refreshTime = 10000;
 		if(typeof this.args[0] == 'number') {
-			this.defaultRefreshTime = this.args[0];
+			this.refreshTime = this.args[0]*1000;
 		}
 		
+		// run the main program.
 		(async () => {
 			await this.initialConnection();
 			await this.run();
@@ -30,9 +31,11 @@ class CulturaController extends PuppetController {
 	async run() {
 		
 		await this.scanInventory();
+		
 		await tracker.check(this.nameMash());
 		
 		await this.wait(this.refreshTime);
+		
 		await this.refresh();
 		
 		this.run();
@@ -51,7 +54,10 @@ class CulturaController extends PuppetController {
 		
 		// scrap result from the page. 
 		let raw = await this.page.evaluate(
-			() => Array.from(document.querySelectorAll('li[data-hook="product-list-grid-item"]'), element => element.textContent)
+			() => Array.from(
+				document.querySelectorAll('li[data-hook="product-list-grid-item"]'), 
+				element => element.textContent
+			)
 		);
 		
 		// convert the result for processing.
@@ -79,6 +85,9 @@ class CulturaController extends PuppetController {
 				.replace('$', ' @ $')
 				.replace('Price', '')
 				.replace('Out of stock', ' @ '+CulturaController.OutOfStock)
+				.replace('SIZE', '')
+				.replace('( ', '(')
+				.replace(' )', ')')
 				.replace('  ', ' ');
 		}
 		
@@ -88,8 +97,6 @@ class CulturaController extends PuppetController {
 			source[i][0] = source[i][0].trim();
 			source[i][1] = source[i][1].trim();
 		}
-		
-		let items = new Map();
 		
 		// convert the array into a map for easier comparison.
 		for(var i=0; i < source.length; i++) {
@@ -102,8 +109,6 @@ class CulturaController extends PuppetController {
 			tracker.itemSet(source[i][0], mapData);
 			
 		}
-		
-		return items;
 		
 	}
 	
