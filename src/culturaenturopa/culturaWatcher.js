@@ -4,7 +4,7 @@ const InventoryTracker = require('../core/inventoryTracker.js');
 var tracker;
 
 //TODO: send message for notification.
-class CulturaController extends PuppetController {
+class CulturaWatcher extends PuppetController {
 	
 	constructor(name, startPage) {
 		
@@ -84,7 +84,7 @@ class CulturaController extends PuppetController {
 				//.replace(/\(.{0,100}\)/g, '')
 				.replace('$', ' @ $')
 				.replace('Price', '')
-				.replace('Out of stock', ' @ '+CulturaController.OutOfStock)
+				.replace('Out of stock', ' @ '+CulturaWatcher.OutOfStock)
 				.replace('SIZE', '')
 				.replace('( ', '(')
 				.replace(' )', ')')
@@ -138,7 +138,7 @@ class CulturaController extends PuppetController {
 		let oos = 0;
 		
 		tracker.items.forEach(function(value, key, map) {
-			if(value.price == CulturaController.OutOfStock) {
+			if(value.price == CulturaWatcher.OutOfStock) {
 				oos++;
 			} 
 		});
@@ -148,9 +148,9 @@ class CulturaController extends PuppetController {
 	}
 	
 }
-CulturaController.OutOfStock = 'OutOfStock';
-CulturaController.itemContainer = 'li[data-hook="product-list-grid-item"]';
-CulturaController.itemName = 'h3[data-hook="product-item-name"]';
-CulturaController.itemOutOfStock = 'span[data-hook="product-item-out-of-stock"]';
+CulturaWatcher.OutOfStock = 'OutOfStock';
+CulturaWatcher.itemContainer = 'li[data-hook="product-list-grid-item"]';
+CulturaWatcher.itemName = 'h3[data-hook="product-item-name"]';
+CulturaWatcher.itemOutOfStock = 'span[data-hook="product-item-out-of-stock"]';
 
-var watcher = new CulturaController('CulturaWatcher', 'https://www.culturaenturopa.store/shop?page=10');
+var watcher = new CulturaWatcher('CulturaWatcher', 'https://www.culturaenturopa.store/shop?page=10');
