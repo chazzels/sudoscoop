@@ -11,15 +11,15 @@ class InventoryTracker extends PuppetController {
 		
 		super(name, startPage);
 		
-		// for development. remove when done.
-		this.debugLogs = true;
-		
 		this.items = new Map();
 		this.master = new Map();
 		this.fingerprints = new Map();
 		this.lastHash = null;
 		this.scanCount = -1;
 		this.noChangeStreak = 0;
+		
+		// for development. remove when done.
+		this.debugLogs = true;
 		
 	}
 	
@@ -30,7 +30,7 @@ class InventoryTracker extends PuppetController {
 		
 		let self = this;
 		
-		this.checkHash(this.createHash(seed));
+		this.checkHash(this.createHash(seed), this.items);
 		
 		this.checkMasterList();
 		

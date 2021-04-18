@@ -25,10 +25,8 @@ class CulturaController extends InvetoryTracker {
 	// run the loop that continues to check. 
 	async run() {
 		
-		await this.scanInventory();
+		this.items = await this.scanInventory();
 		await this.check(this.nameMash());
-		// TODO compare changes if any..
-		// log changes.
 		
 		await this.page.waitForTimeout(this.refreshTime);
 		await this.refresh();
@@ -54,10 +52,6 @@ class CulturaController extends InvetoryTracker {
 		
 		// convert the result for processing.
 		let items = this.processSourceData(raw);
-		
-		if(this.items.size < raw.length) {
-			this.log('InventoryDuplication', 'duplicate invetory found');
-		}
 		
 		this.log('InventoryScan', 'Completed');
 		
@@ -91,7 +85,7 @@ class CulturaController extends InvetoryTracker {
 			source[i][1] = source[i][1].trim();
 		}
 		
-		this.items.clear();
+		let items = new Map();
 		
 		// convert the array into a map for easier comparison.
 		for(var i=0; i < source.length; i++) {
@@ -101,11 +95,11 @@ class CulturaController extends InvetoryTracker {
 				time: Date.now(),
 			};
 			
-			this.items.set(source[i][0], mapData);
+			items.set(source[i][0], mapData);
 			
 		}
 		
-		return source;
+		return items;
 		
 	}
 	
