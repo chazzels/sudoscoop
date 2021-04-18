@@ -1,5 +1,5 @@
-const StudentController = require('./core/studentController');
-const ArgumentProcessor = require('./core/argumentProcessor');
+const StudentController = require('./brightspace/studentController');
+const ArgumentProcessor = require('./brightspace/argumentProcessor');
 
 class SudoSchool extends StudentController {
 	constructor() {
