@@ -33,10 +33,6 @@ class BeamWatcher extends PuppetController {
 	// run the loop that continues to check. 
 	async run() {
 		
-		// #AddToCart
-		
-		let self = this;
-		
 		for(var i=0; i<this.targets.length; i++) {
 			
 			await this.page.goto(this.targets[i]);
@@ -86,9 +82,12 @@ class BeamWatcher extends PuppetController {
 				
 				let option = await self.page.select('#ProductSelect-product-template-option-0', raw[i]);
 				
+				// TODO: check if available.
 				data.push({
 					option: option[0],
+					price: await self.page.$eval('#ProductPrice .money', el => el.textContent),
 					id: await self.page.url().split('?')[1].split('=')[1],
+					date: Date.now(),
 				});
 				
 			}
@@ -109,8 +108,6 @@ class BeamWatcher extends PuppetController {
 			
 		}
 		
-		
-		
 	}
 	
 	nameMash() {
@@ -123,7 +120,8 @@ class BeamWatcher extends PuppetController {
 			
 			value.forEach(function(value, key) {
 				
-				namemash += value.id.toString();
+				namemash += value.option.substring(0,2).toUpperCase() 
+					+ value.id.toString().slice(-6);
 				
 			});
 			
