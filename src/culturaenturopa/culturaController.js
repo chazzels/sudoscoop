@@ -2,11 +2,10 @@
 const puppeteer = require('puppeteer');
 const crypto = require('crypto');
 const shasum = crypto.createHash('sha256');
+const fs = require('fs');
 
 const PuppetController = require('../core/puppetController');
 
-//TODO: collect information about current products. 
-//TODO: price track.
 //TODO: make report of products added and removed or out of stock.
 //TODO: store a master list of products for import on start. 
 //TODO: send message for notification.
@@ -40,9 +39,9 @@ class CulturaController extends PuppetController {
 	// run the loop that continues to check. 
 	async run() {
 		
-		let scanData = await this.scanInventory();
+		await this.scanInventory();
 		await this.checkHash(this.createFingerprint());
-		// compare changes if any..
+		// TODO compare changes if any..
 		// log changes.
 		
 		await this.page.waitForTimeout(this.refreshTime);
@@ -70,6 +69,10 @@ class CulturaController extends PuppetController {
 		// convert the result for processing.
 		let items = this.processSourceData(raw);
 		
+		if(this.items.size < raw.length) {
+			this.log('InventoryDuplication', 'duplicate invetory found');
+		}
+		
 		this.log('InventoryScan', 'Completed');
 		
 		this.scanCount += 1;
@@ -83,8 +86,9 @@ class CulturaController extends PuppetController {
 		// clean up the collected data from the products.
 		for(var i=0; i < source.length; i++) {
 			source[i] = source[i].replace('Quick View', '')
-				.replace(/\(.{0,100}\)/g, '')
+				//.replace(/\(.{0,100}\)/g, '')
 				.replace('$', ' @ $')
+				.replace('Price', '')
 				.replace('Out of stock', ' @ '+CulturaController.OutOfStock)
 				.replace('  ', ' ');
 		}
@@ -122,21 +126,29 @@ class CulturaController extends PuppetController {
 		if(this.master.has(item)) {
 			
 			// check for price difference from last scan. 
-			if(this.master.get(item).price == this.items.get(item).price) {
+			if(this.master.get(item)[0].price == this.items.get(item).price) {
 				
-				//console.log('match');
+				// nothing to be done. no change in item.
 				
 			} else {
 				
 				// log to change history.
-				//console.log('change');
+				// add updaed price value and timestamp
+				let update = this.master.get(item)
+				update.unshift(mapData);
+				this.master.set(item, update);
+				
+				//TODO update change log here.
+				this.log('MasterLis', 'Price Change: '+item);
 				
 			}
 			
 		} else {
 			
-			this.log('MasterList', 'Item Added: '+item)
-			this.master.set(item, mapData);
+			this.master.set(item, new Array(mapData));
+			
+			//TODO update change log here.
+			this.log('MasterList', 'Item Added: '+item);
 			
 		}
 		
