@@ -1,5 +1,4 @@
 // controller for interacting with school portal and perform default actions. 
-const puppeteer = require('puppeteer');
 const PuppetController = require('./puppetController');
 require('dotenv').config();
 

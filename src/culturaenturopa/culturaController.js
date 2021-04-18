@@ -1,5 +1,4 @@
 // controller for interacting with school portal and perform default actions. 
-const puppeteer = require('puppeteer');
 const crypto = require('crypto');
 const shasum = crypto.createHash('sha256');
 const fs = require('fs');
@@ -139,7 +138,7 @@ class CulturaController extends PuppetController {
 				this.master.set(item, update);
 				
 				//TODO update change log here.
-				this.log('MasterLis', 'Price Change: '+item);
+				this.log('MasterList', 'PriceChange: ', item);
 				
 			}
 			
@@ -148,7 +147,7 @@ class CulturaController extends PuppetController {
 			this.master.set(item, new Array(mapData));
 			
 			//TODO update change log here.
-			this.log('MasterList', 'Item Added: '+item);
+			this.log('MasterList', 'ItemAdded: ', item);
 			
 		}
 		
@@ -158,35 +157,37 @@ class CulturaController extends PuppetController {
 	checkHash(hash, data) {
 		
 		this.log('InventoryCheck', 
-			this.items.size.toString()+'/'
-			+(this.items.size-this.countOutOfStock())
-			+'(items/instock)');
+			this.items.size.toString(), '/',
+			this.items.size-this.countOutOfStock(),
+			' (items/instock)');
 		
 		if(this.fingerprints.has(hash) && this.lastHash == hash) {
 			
 			// do nothing... no change...
 			this.log('InventoryChange', 
-				'No Change x'+this.noChangeStreak+' ('+this.scanCount+')');
+				'NoChange',
+				'x'+this.noChangeStreak,
+				'(', this.scanCount, ')');
 			this.noChangeStreak += 1;
 			
 		} else if(this.fingerprints.has(hash)) { 
 			
 			// old hash match
-			this.log('MapCheck', 'Old Hash');
-			this.log('InventoryChange', 'Old State???');
+			this.log('MapCheck', 'OldHash');
+			this.log('InventoryChange', 'OldState?');
 			this.noChangeStreak = 0;
 			
 		} else if(this.lastHash == null) { 
 			
 			// first hash
-			this.log('MapCheck', 'First Hash');
+			this.log('MapCheck', 'FirstHash');
 			this.fingerprints.set(hash, data);
 			this.noChangeStreak += 1;
 			
 		} else {
 			
 			// new hash
-			this.log('MapCheck', 'New Hash');
+			this.log('MapCheck', 'NewHash');
 			this.log('InventoryChange', 'A CHANGE HAS BEEN DETECTED!!!');
 			this.fingerprints.set(hash, data);
 			this.noChangeStreak = 0;
@@ -202,9 +203,12 @@ class CulturaController extends PuppetController {
 		
 		// Make a string of all the first letters of products. 
 		let namemash = '';
+		
 		this.items.forEach((value, key, map)=> 
 			namemash = namemash.concat(key.substring(0, 1)));
 		
+		
+		// add stock levels in to seed string.
 		namemash = this.items.size.toString() + '-'
 			+ this.countOutOfStock() + '-'
 			+ namemash;

@@ -1,4 +1,5 @@
 class ArgumentProcessor {
+	
 	constructor(parameters) {
 		
 		this.args = parameters;

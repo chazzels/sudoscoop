@@ -1,5 +1,6 @@
 // generic controller to control the 
 const puppeteer = require('puppeteer');
+const chalk = require('chalk');
 
 class PuppetController {
 	
@@ -23,6 +24,7 @@ class PuppetController {
 		this.pagehistory = new Array();
 		this.screenshotCounter = 0;
 		this.screenshotDefaultName = "screenshot";
+		this.debugLogs = false;
 		
 		// processing command line arguments and options for storage.
 		// force lower case on all the arguments.
@@ -112,18 +114,43 @@ class PuppetController {
 	}
 	
 	// log a message to the console. 
-	log(module, msg) {
+	log(module, ...msgs) {
 		
-		console.log(this.logHeader+'::'+module+':', msg);
+		let msg = '';
+		
+		msgs.forEach(function(value, key, map) {
+			msg += value.toString();
+		});
+		
+		console.log(this.logHeader + '::' + module + ': ' + msg);
 		
 	}
 	
+	// log a debug message.
+	debug(module, ...msgs) {
+		
+		if(this.debugLogs) {
+			
+			let msg = '';
+			
+			msgs.forEach(function(value, key, map) {
+				msg += value.toString();
+			});
+			
+			console.log(chalk.green(this.logHeader + '::DEBUG::' + module + ': ' + msg));
+			
+		}
+		
+	}
+	
+	// pad a number with leading numbers for usage in text / strings. 
 	padNum(num, size) {
 		num = num.toString();
 		while (num.length < size) num = "0" + num;
 		return num;
 	}
 	
+	// get around int for usage.
 	getRandomInt(max) {
 		return Math.floor(Math.random() * max);
 	}
