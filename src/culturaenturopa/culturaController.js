@@ -1,28 +1,15 @@
 // controller for interacting with school portal and perform default actions. 
-const crypto = require('crypto');
-const shasum = crypto.createHash('sha256');
-const fs = require('fs');
+const InvetoryTracker = require('../core/inventoryTracker.js');
 
-const PuppetController = require('../core/puppetController');
-
-//TODO: make report of products added and removed or out of stock.
-//TODO: store a master list of products for import on start. 
 //TODO: send message for notification.
-class CulturaController extends PuppetController {
+class CulturaController extends InvetoryTracker {
 	
 	constructor(name, startPage) {
 		
 		super(name, startPage);
 		
-		this.items = new Map();
-		this.master = new Map();
-		this.fingerprints = new Map();
-		this.lastHash = null;
-		
 		this.defaultRefreshTime = 10000
 		this.refreshTime = typeof this.args[0] == 'number' ? this.defaultRefreshTime : this.args[0];
-		this.scanCount = -1;
-		this.noChangeStreak = 0;
 		
 		if(typeof this.args[0] == 'number') {
 			this.defaultRefreshTime = this.args[0];
@@ -39,7 +26,7 @@ class CulturaController extends PuppetController {
 	async run() {
 		
 		await this.scanInventory();
-		await this.checkHash(this.createFingerprint());
+		await this.check(this.nameMash());
 		// TODO compare changes if any..
 		// log changes.
 		
@@ -76,7 +63,12 @@ class CulturaController extends PuppetController {
 		
 		this.scanCount += 1;
 		
-		return this.items;
+		this.log('InventoryCheck', 
+			this.items.size.toString(), '/',
+			this.items.size-this.countOutOfStock(),
+			' (items/instock)');
+		
+		return items;
 		
 	}
 	
@@ -111,92 +103,12 @@ class CulturaController extends PuppetController {
 			
 			this.items.set(source[i][0], mapData);
 			
-			this.checkMasterList(source[i][0], mapData);
-			
 		}
 		
 		return source;
 		
 	}
 	
-	checkMasterList(item, mapData) {
-		
-		// check if item has already been seen.
-		if(this.master.has(item)) {
-			
-			// check for price difference from last scan. 
-			if(this.master.get(item)[0].price == this.items.get(item).price) {
-				
-				// nothing to be done. no change in item.
-				
-			} else {
-				
-				// log to change history.
-				// add updaed price value and timestamp
-				let update = this.master.get(item)
-				update.unshift(mapData);
-				this.master.set(item, update);
-				
-				//TODO update change log here.
-				this.log('MasterList', 'PriceChange: ', item);
-				
-			}
-			
-		} else {
-			
-			this.master.set(item, new Array(mapData));
-			
-			//TODO update change log here.
-			this.log('MasterList', 'ItemAdded: ', item);
-			
-		}
-		
-	}
-	
-	// compare the hashes to determine what has happened to the inventory.
-	checkHash(hash, data) {
-		
-		this.log('InventoryCheck', 
-			this.items.size.toString(), '/',
-			this.items.size-this.countOutOfStock(),
-			' (items/instock)');
-		
-		if(this.fingerprints.has(hash) && this.lastHash == hash) {
-			
-			// do nothing... no change...
-			this.log('InventoryChange', 
-				'NoChange',
-				'x'+this.noChangeStreak,
-				'(', this.scanCount, ')');
-			this.noChangeStreak += 1;
-			
-		} else if(this.fingerprints.has(hash)) { 
-			
-			// old hash match
-			this.log('MapCheck', 'OldHash');
-			this.log('InventoryChange', 'OldState?');
-			this.noChangeStreak = 0;
-			
-		} else if(this.lastHash == null) { 
-			
-			// first hash
-			this.log('MapCheck', 'FirstHash');
-			this.fingerprints.set(hash, data);
-			this.noChangeStreak += 1;
-			
-		} else {
-			
-			// new hash
-			this.log('MapCheck', 'NewHash');
-			this.log('InventoryChange', 'A CHANGE HAS BEEN DETECTED!!!');
-			this.fingerprints.set(hash, data);
-			this.noChangeStreak = 0;
-			
-		}
-		
-		this.lastHash = hash;
-		
-	}
 	
 	// create a unique string for the hash. 
 	nameMash() {
@@ -230,19 +142,6 @@ class CulturaController extends PuppetController {
 		
 		return oos
 		
-	}
-	
-	// create a hash of the results.
-	createFingerprint() {
-		
-		return this.createHash(this.nameMash());
-		
-	}
-	
-	// create a SHA256 hash from an input string.
-	createHash(namemash) {
-		return crypto.createHash("sha256").update(namemash)
-			.digest().toString('hex');
 	}
 	
 }
