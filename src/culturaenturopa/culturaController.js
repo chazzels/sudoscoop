@@ -1,12 +1,16 @@
 // controller for interacting with school portal and perform default actions. 
-const InvetoryTracker = require('../core/inventoryTracker.js');
+const PuppetController = require('../core/puppetController');
+const InventoryTracker = require('../core/inventoryTracker.js');
+var tracker;
 
 //TODO: send message for notification.
-class CulturaController extends InvetoryTracker {
+class CulturaController extends PuppetController {
 	
 	constructor(name, startPage) {
 		
 		super(name, startPage);
+		
+		tracker = new InventoryTracker(name);
 		
 		this.defaultRefreshTime = 10000
 		this.refreshTime = typeof this.args[0] == 'number' ? this.defaultRefreshTime : this.args[0];
@@ -25,10 +29,10 @@ class CulturaController extends InvetoryTracker {
 	// run the loop that continues to check. 
 	async run() {
 		
-		this.items = await this.scanInventory();
-		await this.check(this.nameMash());
+		await this.scanInventory();
+		await tracker.check(this.nameMash());
 		
-		await this.page.waitForTimeout(this.refreshTime);
+		await this.wait(this.refreshTime);
 		await this.refresh();
 		
 		this.run();
@@ -58,9 +62,9 @@ class CulturaController extends InvetoryTracker {
 		this.scanCount += 1;
 		
 		this.log('InventoryCheck', 
-			this.items.size.toString(), '/',
-			this.items.size-this.countOutOfStock(),
-			' (items/instock)');
+			tracker.items.size.toString(), '/',
+			tracker.items.size-this.countOutOfStock(),
+			'(items/instock)');
 		
 		return items;
 		
@@ -95,7 +99,7 @@ class CulturaController extends InvetoryTracker {
 				time: Date.now(),
 			};
 			
-			items.set(source[i][0], mapData);
+			tracker.itemSet(source[i][0], mapData);
 			
 		}
 		
@@ -110,12 +114,12 @@ class CulturaController extends InvetoryTracker {
 		// Make a string of all the first letters of products. 
 		let namemash = '';
 		
-		this.items.forEach((value, key, map)=> 
+		tracker.items.forEach((value, key, map)=> 
 			namemash = namemash.concat(key.substring(0, 1)));
 		
 		
 		// add stock levels in to seed string.
-		namemash = this.items.size.toString() + '-'
+		namemash = tracker.items.size.toString() + '-'
 			+ this.countOutOfStock() + '-'
 			+ namemash;
 		
@@ -128,7 +132,7 @@ class CulturaController extends InvetoryTracker {
 		
 		let oos = 0;
 		
-		this.items.forEach(function(value, key, map) {
+		tracker.items.forEach(function(value, key, map) {
 			if(value.price == CulturaController.OutOfStock) {
 				oos++;
 			} 

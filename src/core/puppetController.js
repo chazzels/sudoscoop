@@ -1,16 +1,17 @@
 // generic controller to control the 
 const puppeteer = require('puppeteer');
-const chalk = require('chalk');
+const Logger = require('./logger');
 
-class PuppetController {
+class PuppetController extends Logger {
 	
 	constructor(name, startPage) {
+		
+		super(name);
 		
 		// check arguments and set defaults. 
 		if(typeof name == 'undefined') {name = 'PuppetController';}
 		if(typeof startPage == 'undefined') {startPage = 'https://duckduckgo.com'}
 		
-		this.logHeader = name;
 		this.startPage = startPage;
 		
 		this.log('Controller', 'Creating...');
@@ -24,7 +25,7 @@ class PuppetController {
 		this.pagehistory = new Array();
 		this.screenshotCounter = 0;
 		this.screenshotDefaultName = "screenshot";
-		this.debugLogs = false;
+		
 		
 		// processing command line arguments and options for storage.
 		// force lower case on all the arguments.
@@ -89,6 +90,8 @@ class PuppetController {
 	
 	async wait(ms) {
 		
+		this.log('Controller', 'Waiting', Math.round(ms/1000, 0)+'s');
+		
 		await this.page.waitForTimeout(ms);
 		
 	}
@@ -110,36 +113,6 @@ class PuppetController {
 		this.log('Screenshot', fileName);
 		
 		await this.page.screenshot({ type: mode, path: fileName });
-		
-	}
-	
-	// log a message to the console. 
-	log(module, ...msgs) {
-		
-		let msg = '';
-		
-		msgs.forEach(function(value, key, map) {
-			msg += value.toString();
-		});
-		
-		console.log(this.logHeader + '::' + module + ': ' + msg);
-		
-	}
-	
-	// log a debug message.
-	debug(module, ...msgs) {
-		
-		if(this.debugLogs) {
-			
-			let msg = '';
-			
-			msgs.forEach(function(value, key, map) {
-				msg += value.toString();
-			});
-			
-			console.log(chalk.green(this.logHeader + '::DEBUG::' + module + ': ' + msg));
-			
-		}
 		
 	}
 	

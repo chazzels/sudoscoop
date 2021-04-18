@@ -1,27 +1,32 @@
 const crypto = require('crypto');
 const shasum = crypto.createHash('sha256');
 const fs = require('fs');
-const PuppetController = require('../core/puppetController');
+const Logger = require('./logger');
 
 //TODO: make report of products added and removed or out of stock.
 //TODO: store a master list of products for import on start. 
-class InventoryTracker extends PuppetController {
+class InventoryTracker extends Logger {
 	
-	constructor(name, startPage) {
+	constructor(name) {
 		
-		super(name, startPage);
+		super(name);
 		
 		this.items = new Map();
 		this.master = new Map();
 		this.fingerprints = new Map();
 		this.lastHash = null;
-		this.scanCount = -1;
+		this.scanCount = 0;
 		this.noChangeStreak = 0;
 		
 		// for development. remove when done.
 		this.debugLogs = true;
 		
 	}
+	
+	itemSet(key, value) { return this.items.set(key, value); }
+	itemGet(key) { return this.items.get(key); }
+	itemHas(key) { return this.items.has(key); }
+	itemSize() { return this.items.size; }
 	
 	
 	// check if the source seed provided by the controller is different from the last one.
@@ -60,7 +65,7 @@ class InventoryTracker extends PuppetController {
 					self.master.set(item, update);
 					
 					//TODO update change log here.
-					self.debug('MasterList', 'PriceChange: ', item);
+					self.debug('InventoryTracker', 'PriceChange:', item);
 					
 				}
 				
@@ -69,7 +74,7 @@ class InventoryTracker extends PuppetController {
 				self.master.set(item, new Array(mapData));
 				
 				//TODO update change log here.
-				self.debug('MasterList', 'ItemAdded: ', item);
+				self.debug('InventoryTracker', 'ItemAdded:', item);
 				
 			}
 			
@@ -83,17 +88,18 @@ class InventoryTracker extends PuppetController {
 		if(this.fingerprints.has(hash) && this.lastHash == hash) {
 			
 			// do nothing... no change...
-			this.log('InventoryChange', 
+			this.log('InventoryTracker', 
 				'NoChange',
-				' x'+this.noChangeStreak,
-				' (', this.scanCount, ')');
+				'x'+this.noChangeStreak,
+				'('+this.scanCount+')');
+				
 			this.noChangeStreak += 1;
 			
 		} else if(this.fingerprints.has(hash)) { 
 			
 			// old hash match
 			this.log('MapCheck', 'OldHash');
-			this.log('InventoryChange', 'OldState?');
+			this.log('InventoryTracker', 'OldState?');
 			this.noChangeStreak = 0;
 			
 		} else if(this.lastHash == null) { 
@@ -107,7 +113,7 @@ class InventoryTracker extends PuppetController {
 			
 			// new hash
 			this.log('MapCheck', 'NewHash');
-			this.log('InventoryChange', 'A CHANGE HAS BEEN DETECTED!!!');
+			this.log('InventoryTracker', 'A CHANGE HAS BEEN DETECTED!!!');
 			this.fingerprints.set(hash, data);
 			this.noChangeStreak = 0;
 			
@@ -115,16 +121,18 @@ class InventoryTracker extends PuppetController {
 		
 		this.lastHash = hash;
 		
+		this.scanCount++;
+		
 	}
 	
 	// create a SHA256 hash from an input string.
 	createHash(seed) {
 		
-		this.debug('HashInput:', seed);
+		this.debug('InventoryHashIn', seed);
 		
 		let hex = crypto.createHash("sha256").update(String(seed)).digest().toString('hex');
 		
-		this.debug('HashOutput', hex);
+		this.debug('InventoryHashOut', hex);
 		
 		return hex;
 	}
