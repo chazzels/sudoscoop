@@ -18,8 +18,10 @@ class BeamWatcher extends PuppetController {
 		
 		// configure the refresh timeout.
 		this.refreshTime = 10000;
-		if(typeof this.args[0] == 'number') {
-			this.refreshTime = this.args[0]*1000;
+		let argRefreshTime = Number(this.args[0]);
+		if(typeof argRefreshTime == 'number' && !isNaN(argRefreshTime)) {
+			this.refreshTime = argRefreshTime*1000;
+			this.debug('RefreshTime:', argRefreshTime);
 		}
 		
 		// run the main program.
@@ -61,7 +63,8 @@ class BeamWatcher extends PuppetController {
 		this.log('InventoryScan', 'Running...');
 		
 		// get product name.
-		productName = await self.page.$('.product-single__title')
+		productName = await self.page.$('.product-single__title');
+		productName = await self.page.evaluate(el => el.textContent, productName)
 		
 		if(productName != null) {
 			
@@ -80,19 +83,30 @@ class BeamWatcher extends PuppetController {
 			// get the options for the product.
 			for(var i=0; i < raw.length; i++) {
 				
-				let option = await self.page.select('#ProductSelect-product-template-option-0', raw[i]);
+				let name = await self.page.select('#ProductSelect-product-template-option-0', raw[i]);
+				name = name[0];
 				
-				// TODO: check if available.
-				data.push({
-					option: option[0],
-					price: await self.page.$eval('#ProductPrice .money', el => el.textContent),
-					id: await self.page.url().split('?')[1].split('=')[1],
-					date: Date.now(),
-				});
+				let sku = await self.page.url().split('?')[1].split('=')[1];
+				
+				let price = await self.page.$eval('#ProductPrice .money', el => el.textContent)
+				
+				let stock = await self.page.evaluate(
+					() => Array.from(
+						document.querySelectorAll('#AddToCart'), 
+						element => element.getAttribute('disabled')
+					)
+				);
+				
+				if(stock[0] == '') { 
+					stock = false; 
+				} else {
+					stock = true;
+				}
+				
+				tracker.addItem(productName, name, sku, price, stock);
 				
 			}
 			
-			tracker.items.set(name, data);
 			
 			self.scanCount += 1;
 			
@@ -116,12 +130,14 @@ class BeamWatcher extends PuppetController {
 		
 		tracker.items.forEach(function(value, key) {
 			
+			console.log(key);
+			
 			namemash += key.substring(0,2).toUpperCase();
 			
 			value.forEach(function(value, key) {
 				
-				namemash += value.option.substring(0,2).toUpperCase() 
-					+ value.id.toString().slice(-6);
+				namemash += key.substring(0,2).toUpperCase() 
+					+ value.sku.toString().slice(-6);
 				
 			});
 			

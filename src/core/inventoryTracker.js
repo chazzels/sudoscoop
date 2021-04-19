@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const shasum = crypto.createHash('sha256');
 const fs = require('fs');
 const Logger = require('./logger');
+const InventoryItem = require('./inventoryItem');
 
 //TODO: make report of products added and removed or out of stock.
 //TODO: store a master list of products for import on start. 
@@ -23,12 +24,6 @@ class InventoryTracker extends Logger {
 		
 	}
 	
-	itemSet(key, value) { return this.items.set(key, value); }
-	itemGet(key) { return this.items.get(key); }
-	itemHas(key) { return this.items.has(key); }
-	itemSize() { return this.items.size; }
-	
-	
 	// check if the source seed provided by the controller is different from the last one.
 	// then check if the item map is different from master for price changes.
 	check(seed) {
@@ -39,6 +34,10 @@ class InventoryTracker extends Logger {
 		
 		this.checkMasterList();
 		
+		this.items.clear();
+		
+		console.log(this.master);
+		
 	}
 	
 	// check the items map against the master map.
@@ -46,13 +45,14 @@ class InventoryTracker extends Logger {
 		
 		let self = this;
 		
-		this.items.forEach(function(mapData, item, map) {
+		self.items.forEach(function(data, item) {
 			
 			// check if item has already been seen.
 			if(self.master.has(item)) {
 				
+				// TODO this does not compare the new product structure correctly.
 				// check for price difference from last scan. 
-				if(self.master.get(item)[0].price == self.items.get(item).price) {
+				if(self.master.get(item).get == self.items.get(item).price) {
 					
 					// nothing to be done. no change in item.
 					
@@ -61,7 +61,8 @@ class InventoryTracker extends Logger {
 					// log to change history.
 					// add updaed price value and timestamp
 					let update = self.master.get(item)
-					update.unshift(mapData);
+					update.unshift(data);
+					
 					self.master.set(item, update);
 					
 					//TODO update change log here.
@@ -71,7 +72,7 @@ class InventoryTracker extends Logger {
 				
 			} else {
 				
-				self.master.set(item, new Array(mapData));
+				self.master.set(item, new Array(data));
 				
 				//TODO update change log here.
 				self.debug('InventoryTracker', 'ItemAdded:', item);
@@ -135,6 +136,28 @@ class InventoryTracker extends Logger {
 		this.debug('InventoryHashOut', hex);
 		
 		return hex;
+	}
+	
+	addItem(productName, name, sku, price, stock) {
+		
+		// check productname for existing entry.
+		if(this.items.has(productName)) {
+			
+			// update an exsisting entry wu
+			this.items.get(productName).set(name, new InventoryItem(sku, price, stock));
+			
+		} else {
+			
+			// create a new product in the item list. 
+			this.items.set(productName, new Map());
+			
+			// add a new entry by the sku name.
+			// add information about it the current state of the item.
+			this.items.get(productName)
+				.set(name, new InventoryItem(sku, price, stock));
+			
+		}
+		
 	}
 	
 }

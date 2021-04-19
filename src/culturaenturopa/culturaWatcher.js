@@ -15,8 +15,10 @@ class CulturaWatcher extends PuppetController {
 		
 		// configure the refresh timeout.
 		this.refreshTime = 10000;
-		if(typeof this.args[0] == 'number') {
-			this.refreshTime = this.args[0]*1000;
+		let argRefreshTime = Number(this.args[0]);
+		if(typeof argRefreshTime == 'number' && !isNaN(argRefreshTime)) {
+			this.refreshTime = argRefreshTime*1000;
+			this.debug('RefreshTime:', argRefreshTime);
 		}
 		
 		// run the main program.
@@ -101,12 +103,14 @@ class CulturaWatcher extends PuppetController {
 		// convert the array into a map for easier comparison.
 		for(var i=0; i < source.length; i++) {
 			
-			let mapData = {
-				price: source[i][1],
-				time: Date.now(),
-			};
+			// deafult the price if none set. 
+			let price = typeof source[i][1] == CulturaWatcher.OutOfStock ? '$0.00' : source[i][1];
 			
-			tracker.itemSet(source[i][0], mapData);
+			// determine stock for the sku. 
+			let stock = source[i][1] == CulturaWatcher.OutOfStock ? false : true;
+			
+			// add the sku to the master list.
+			tracker.addItem(source[i][0], source[i][0], source[i][0], source[i][1], stock)
 			
 		}
 		
