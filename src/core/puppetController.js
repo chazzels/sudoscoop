@@ -1,4 +1,5 @@
 // generic controller to control the 
+const path = require('path');
 const puppeteer = require('puppeteer');
 const Logger = require('./logger');
 
@@ -98,6 +99,7 @@ class PuppetController extends Logger {
 	
 	// take a screenshot for debugging or records. 
 	// name and type can be set. otherwise defaults to settings. 
+	// TODO add check for duplicat and auto implement. 
 	async screenshot(name, mode) {
 		
 		if(typeof mode == 'undefined') { mode = 'jpeg'; }
@@ -112,7 +114,10 @@ class PuppetController extends Logger {
 		
 		this.log('Screenshot', fileName);
 		
-		await this.page.screenshot({ type: mode, path: fileName });
+		await this.page.screenshot({ 
+			type: mode, 
+			path: 'screenshot/' + fileName,
+		});
 		
 	}
 	
