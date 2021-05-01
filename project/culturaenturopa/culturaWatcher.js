@@ -4,7 +4,6 @@ const InventoryTracker = require('../../src/core/inventoryTracker.js');
 var tracker;
 
 //TODO send message for notification.
-//TODO update to work with new inventory systems.
 class CulturaWatcher extends PuppetController {
 	
 	constructor(name, startPage) {
