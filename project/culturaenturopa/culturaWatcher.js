@@ -3,8 +3,8 @@ const PuppetController = require('../../src/core/puppetController');
 const InventoryTracker = require('../../src/core/inventoryTracker.js');
 var tracker;
 
-//TODO: send message for notification.
-//TODO updat to work with new inventory systems.
+//TODO send message for notification.
+//TODO update to work with new inventory systems.
 class CulturaWatcher extends PuppetController {
 	
 	constructor(name, startPage) {
@@ -35,7 +35,7 @@ class CulturaWatcher extends PuppetController {
 		
 		await this.scanInventory();
 		
-		await tracker.check(this.nameMash());
+		await tracker.check();
 		
 		await this.wait(this.refreshTime);
 		
@@ -68,8 +68,6 @@ class CulturaWatcher extends PuppetController {
 		
 		this.log('InventoryScan', 'Completed');
 		
-		this.scanCount += 1;
-		
 		this.log('InventoryCheck', 
 			tracker.items.size.toString(), '/',
 			tracker.items.size-this.countOutOfStock(),
@@ -84,7 +82,6 @@ class CulturaWatcher extends PuppetController {
 		// clean up the collected data from the products.
 		for(var i=0; i < source.length; i++) {
 			source[i] = source[i].replace('Quick View', '')
-				//.replace(/\(.{0,100}\)/g, '')
 				.replace('$', ' @ $')
 				.replace('Price', '')
 				.replace('Out of stock', ' @ '+CulturaWatcher.OutOfStock)
@@ -110,30 +107,10 @@ class CulturaWatcher extends PuppetController {
 			// determine stock for the sku. 
 			let stock = source[i][1] == CulturaWatcher.OutOfStock ? false : true;
 			
-			// add the sku to the master list.
+			// add the sku to the trackers map.
 			tracker.addItem(source[i][0], source[i][0], source[i][0], source[i][1], stock)
 			
 		}
-		
-	}
-	
-	
-	// create a unique string for the hash. 
-	nameMash() {
-		
-		// Make a string of all the first letters of products. 
-		let namemash = '';
-		
-		tracker.items.forEach((value, key)=> 
-			namemash = namemash.concat(key.substring(0, 1)));
-		
-		
-		// add stock levels in to seed string.
-		namemash = tracker.items.size.toString() + '-'
-			+ this.countOutOfStock() + '-'
-			+ namemash;
-		
-		return namemash;
 		
 	}
 	
@@ -143,7 +120,8 @@ class CulturaWatcher extends PuppetController {
 		let oos = 0;
 		
 		tracker.items.forEach(function(value, key, map) {
-			if(value.price == CulturaWatcher.OutOfStock) {
+			console.log(value.get(key).price, CulturaWatcher.OutOfStock);
+			if(value.get(key).price == CulturaWatcher.OutOfStock) {
 				oos++;
 			} 
 		});

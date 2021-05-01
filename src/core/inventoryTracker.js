@@ -230,16 +230,20 @@ class InventoryTracker extends Logger {
 		this.items.forEach(function(value, key) {
 			
 			// take the first part of the product name.
-			namemash += key.substring(0,2).toUpperCase();
+			namemash += key.replace(/ /g, '').substring(0,2).toUpperCase();
 			
-			value.forEach(function(value, key) {
+			value.forEach(function(value,key) {
 				
 				// place the price into the string
-				namemash += value.price.replace('$', '').replace(/\./g, '').replace(/0/g, '');
+				namemash += value.price
+					.replace('$', '')
+					.replace(/\./g, '')
+					.replace(/0/g, '')
+					.substring(0,4);
 				
 				// place the start of the sku name and the end of the sku.
-				namemash += key.substring(0,2).toUpperCase() 
-					+ value.sku.toString().slice(-6);
+				namemash += key.replace(/ /g, '').substring(0,2).toUpperCase() 
+					+ value.sku.toString().replace(/ /g, '').slice(-6);
 				
 			});
 			
