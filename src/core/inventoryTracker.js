@@ -26,9 +26,11 @@ class InventoryTracker extends Logger {
 	
 	// check if the source seed provided by the controller is different from the last one.
 	// then check if the item map is different from master for price changes.
-	check(seed) {
+	check() {
 		
 		let self = this;
+		
+		let seed = this.nameMash();
 		
 		this.checkHash(this.createHash(seed), this.items);
 		
@@ -195,6 +197,8 @@ class InventoryTracker extends Logger {
 		
 	}
 	
+	// add an item to the from the current scan. 
+	// will be compared to the master map later.
 	addItem(productName, skuName, sku, price, stock) {
 		
 		// check productname for existing entry.
@@ -215,6 +219,33 @@ class InventoryTracker extends Logger {
 			this.items.get(productName).set(skuName, new InventoryItem(sku, price, stock));
 			
 		}
+		
+	}
+	
+	// create a unique source string to seed the hash. 
+	nameMash() {
+		
+		let namemash = this.items.size.toString();
+		
+		this.items.forEach(function(value, key) {
+			
+			// take the first part of the product name.
+			namemash += key.substring(0,2).toUpperCase();
+			
+			value.forEach(function(value, key) {
+				
+				// place the price into the string
+				namemash += value.price.replace('$', '').replace(/\./g, '').replace(/0/g, '');
+				
+				// place the start of the sku name and the end of the sku.
+				namemash += key.substring(0,2).toUpperCase() 
+					+ value.sku.toString().slice(-6);
+				
+			});
+			
+		});
+		
+		return namemash;
 		
 	}
 	

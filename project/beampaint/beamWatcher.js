@@ -43,7 +43,7 @@ class BeamWatcher extends PuppetController {
 			
 		};
 		
-		await tracker.check(this.nameMash());
+		await tracker.check();
 		
 		await this.wait(this.refreshTime);
 		
@@ -126,28 +126,8 @@ class BeamWatcher extends PuppetController {
 		
 	}
 	
-	nameMash() {
-		
-		let namemash = tracker.items.size.toString();
-		
-		tracker.items.forEach(function(value, key) {
-			
-			namemash += key.substring(0,2).toUpperCase();
-			
-			value.forEach(function(value, key) {
-				
-				namemash += key.substring(0,2).toUpperCase() 
-					+ value.sku.toString().slice(-6);
-				
-			});
-			
-		});
-		
-		return namemash;
-		
-	}
-	
 }
+
 BeamWatcher.ColorSelect = '#ProductSelect-product-template-option-0';
 BeamWatcher.ColorOption = 'option';
 
