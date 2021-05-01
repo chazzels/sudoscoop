@@ -3,6 +3,7 @@ const path = require('path');
 const puppeteer = require('puppeteer');
 const Logger = require('./logger');
 
+// TODO add auto page refresh. 
 class PuppetController extends Logger {
 	
 	constructor(name, startPage) {
@@ -99,15 +100,20 @@ class PuppetController extends Logger {
 	
 	// take a screenshot for debugging or records. 
 	// name and type can be set. otherwise defaults to settings. 
-	// TODO add check for duplicat and auto implement. 
+	// TODO add check for duplicates and auto increment. 
 	async screenshot(name, mode) {
 		
+		// default the image mode to jpeg if none set.
 		if(typeof mode == 'undefined') { mode = 'jpeg'; }
 		
 		if(typeof name == 'undefined') { 
+			
 			name = this.screenshotDefaultName; 
+			
 			this.screenshotCounter++;
+			
 			name = name+this.padNum(this.screenshotCounter, 3);
+			
 		}
 		
 		let fileName = name+'.'+mode

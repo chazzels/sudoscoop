@@ -6,6 +6,8 @@ class InventoryItem {
 		if(typeof price == 'undefined') { price = null }
 		if(typeof stock == 'undefined') { stock = false }
 		
+		price = price.trim();
+		
 		let data = {
 			sku: sku,
 			price: price,

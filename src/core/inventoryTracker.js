@@ -63,7 +63,7 @@ class InventoryTracker extends Logger {
 							
 						} else {
 						// sku price has changed
-						
+							
 							self.updateMasterSku(item, skuName, info);
 							
 							//TODO update change log here.
@@ -73,7 +73,7 @@ class InventoryTracker extends Logger {
 						}
 						
 					} else {
-					// if sku is not already in the mastaer map.
+					// if sku is not already in the master map.
 						
 						self.newMasterSku(item, skuName);
 						
