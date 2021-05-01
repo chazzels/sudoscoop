@@ -120,7 +120,6 @@ class CulturaWatcher extends PuppetController {
 		let oos = 0;
 		
 		tracker.items.forEach(function(value, key, map) {
-			console.log(value.get(key).price, CulturaWatcher.OutOfStock);
 			if(value.get(key).price == CulturaWatcher.OutOfStock) {
 				oos++;
 			} 
