@@ -1,5 +1,5 @@
 // controller for interacting with school portal and perform default actions. 
-const PuppetController = require('../core/puppetController');
+const PuppetController = require('../../src/core/puppetController');
 require('dotenv').config();
 
 class StudentController extends PuppetController {
@@ -22,6 +22,8 @@ class StudentController extends PuppetController {
 			this.page.click(StudentController.loginPortalSignIn),
 			this.page.waitForNavigation({ waitUntil: 'networkidle0' }),
 		]);
+		
+		this.screenshot();
 		
 		// enter the username and password. 
 		await this.page.type(StudentController.loginPortalUserName, process.env.SCHOOLUSER);

@@ -1,9 +1,10 @@
 // controller for interacting with school portal and perform default actions. 
-const PuppetController = require('../core/puppetController');
-const InventoryTracker = require('../core/inventoryTracker.js');
+const PuppetController = require('../../src/core/puppetController');
+const InventoryTracker = require('../../src/core/inventoryTracker.js');
 var tracker;
 
 //TODO: send message for notification.
+//TODO updat to work with new inventory systems.
 class CulturaWatcher extends PuppetController {
 	
 	constructor(name, startPage) {
