@@ -103,10 +103,12 @@ class BeamWatcher extends PuppetController {
 					stock = true;
 				}
 				
+				// DEV random price set for change testing.
+				if(self.getRandomInt(5) == 2) { price = '$'+self.getRandomInt(20)+'.00'; console.log('change', price);}
+				
 				tracker.addItem(productName, name, sku, price, stock);
 				
 			}
-			
 			
 			self.scanCount += 1;
 			
@@ -129,8 +131,6 @@ class BeamWatcher extends PuppetController {
 		let namemash = tracker.items.size.toString();
 		
 		tracker.items.forEach(function(value, key) {
-			
-			console.log(key);
 			
 			namemash += key.substring(0,2).toUpperCase();
 			

@@ -36,8 +36,6 @@ class InventoryTracker extends Logger {
 		
 		this.items.clear();
 		
-		console.log(this.master);
-		
 	}
 	
 	// check the items map against the master map.
@@ -45,41 +43,99 @@ class InventoryTracker extends Logger {
 		
 		let self = this;
 		
-		self.items.forEach(function(data, item) {
+		self.items.forEach(function masterListEachItem(data, item) {
 			
-			// check if item has already been seen.
-			if(self.master.has(item)) {
+			data.forEach(function masterListEachSku(info, skuName) {
 				
-				// TODO this does not compare the new product structure correctly.
-				// check for price difference from last scan. 
-				if(self.master.get(item).get == self.items.get(item).price) {
+				// item has already been seen by the scanner.
+				if(self.master.has(item)) {
 					
-					// nothing to be done. no change in item.
+					// skuName is in the item map.
+					// add entry to the new map and set an empty array.
+					if(self.master.get(item).has(skuName)) {
+						
+						// check for price difference from last scan. 
+						if(typeof self.master.get(item).get(skuName) != "undefined" 
+							&& self.master.get(item).get(skuName)[0].price == self.items.get(item).get(skuName).price) {
+							
+							// TODO check for stock change.
+							// nothing to be done. no change in item or sku.
+							
+						} else {
+						// sku price has changed
+						
+							self.updateMasterSku(item, skuName, info);
+							
+							//TODO update change log here.
+							
+							self.debug('InventoryTracker', 'PriceChange:', item, skuName);
+							
+						}
+						
+					} else {
+					// if sku is not already in the mastaer map.
+						
+						self.newMasterSku(item, skuName);
+						
+						self.updateMasterSku(item, skuName, info);
+						
+						self.debug('InventoryTracker', 'NewSku:', item, skuName)
+					}
+					
 					
 				} else {
+				// item and sku are new to the master list.
 					
-					// log to change history.
-					// add updaed price value and timestamp
-					let update = self.master.get(item)
-					update.unshift(data);
+					self.newMasterItem(item);
 					
-					self.master.set(item, update);
+					self.newMasterSku(item, skuName);
+					
+					self.updateMasterSku(item, skuName, info);
 					
 					//TODO update change log here.
-					self.debug('InventoryTracker', 'PriceChange:', item);
+					
+					self.debug('InventoryTracker', 'ItemAdded:', item, skuName);
 					
 				}
 				
-			} else {
-				
-				self.master.set(item, new Array(data));
-				
-				//TODO update change log here.
-				self.debug('InventoryTracker', 'ItemAdded:', item);
-				
-			}
+			});
 			
 		});
+		
+	}
+	
+	// create an new entry for the 
+	newMasterItem(item) {
+		
+		this.master.set(item, new Map());
+		
+	}
+	
+	// create new sku on an item on the master map. 
+	newMasterSku(item, skuName) {
+		
+		this.master.get(item).set(skuName, new Array());
+		
+	}
+	
+	// update an sku entry on the master map.
+	updateMasterSku(item, skuName, info) {
+		
+		let source = this.master.get(item).get(skuName);
+		
+		let update = this.updateMasterSkuArray(source, info);
+		
+		this.master.get(item).set(skuName, update);
+		
+	}
+	
+	// add new entry to a sku entery 
+	// by adding the updated value to the start of the array. 
+	updateMasterSkuArray(source, add) {
+		
+		source.unshift(add);
+		
+		return source;
 		
 	}
 	
@@ -136,25 +192,27 @@ class InventoryTracker extends Logger {
 		this.debug('InventoryHashOut', hex);
 		
 		return hex;
+		
 	}
 	
-	addItem(productName, name, sku, price, stock) {
+	addItem(productName, skuName, sku, price, stock) {
 		
 		// check productname for existing entry.
-		if(this.items.has(productName)) {
+		if(this.items.has(productName) && this.items.get(productName).has(skuName)) {
 			
-			// update an exsisting entry wu
-			this.items.get(productName).set(name, new InventoryItem(sku, price, stock));
+			// update an exsisting entry
+			this.items.get(productName).set(skuName, new InventoryItem(sku, price, stock));
 			
 		} else {
 			
 			// create a new product in the item list. 
-			this.items.set(productName, new Map());
+			if(!this.items.has(productName)) {
+				this.items.set(productName, new Map());
+			}
 			
 			// add a new entry by the sku name.
 			// add information about it the current state of the item.
-			this.items.get(productName)
-				.set(name, new InventoryItem(sku, price, stock));
+			this.items.get(productName).set(skuName, new InventoryItem(sku, price, stock));
 			
 		}
 		
