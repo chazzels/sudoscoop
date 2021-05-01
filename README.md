@@ -1,5 +1,6 @@
 # sudoscoop
-Tools for interacting with student portal. This is a side project exploring puppeteer and web data scraping.
+Tools for building web scrapers and scanners. 
+This is a side project exploring puppeteer and web data scraping.
 
 ## Project Overview
 ### PuppetController

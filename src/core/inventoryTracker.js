@@ -4,8 +4,9 @@ const fs = require('fs');
 const Logger = require('./logger');
 const InventoryItem = require('./inventoryItem');
 
-//TODO: make report of products added and removed or out of stock.
-//TODO: store a master list of products for import on start. 
+//TODO make report of products added and removed or out of stock.
+//TODO store a master list of products for import on start. 
+//TODO send a message/notification on changes. 
 class InventoryTracker extends Logger {
 	
 	constructor(name) {
@@ -24,7 +25,7 @@ class InventoryTracker extends Logger {
 		
 	}
 	
-	// check if the source seed provided by the controller is different from the last one.
+	// check if the hash is different from the last one.
 	// then check if the item map is different from master for price changes.
 	check() {
 		
@@ -32,10 +33,13 @@ class InventoryTracker extends Logger {
 		
 		let seed = this.nameMash();
 		
+		// create and check hashses
 		this.checkHash(this.createHash(seed), this.items);
 		
+		// compare item and master map.
 		this.checkMasterList();
 		
+		// reset the item list for the next scan.
 		this.items.clear();
 		
 	}
@@ -106,7 +110,7 @@ class InventoryTracker extends Logger {
 		
 	}
 	
-	// create an new entry for the 
+	// create an new entry for an item on the master map.
 	newMasterItem(item) {
 		
 		this.master.set(item, new Map());
@@ -131,8 +135,8 @@ class InventoryTracker extends Logger {
 		
 	}
 	
-	// add new entry to a sku entery 
-	// by adding the updated value to the start of the array. 
+	// add new data point to a sku entry 
+	// adds the updated data point to the start of the array. 
 	updateMasterSkuArray(source, add) {
 		
 		source.unshift(add);
@@ -141,7 +145,7 @@ class InventoryTracker extends Logger {
 		
 	}
 	
-	// compare the hashes to determine what has happened to the inventory.
+	// compare the hashes to determine if a change occured.
 	checkHash(hash, data) {
 		
 		if(this.fingerprints.has(hash) && this.lastHash == hash) {
@@ -189,7 +193,10 @@ class InventoryTracker extends Logger {
 		
 		this.debug('InventoryHashIn', seed);
 		
-		let hex = crypto.createHash("sha256").update(String(seed)).digest().toString('hex');
+		let hex = crypto.createHash("sha256")
+			.update(String(seed))
+			.digest()
+			.toString('hex');
 		
 		this.debug('InventoryHashOut', hex);
 		

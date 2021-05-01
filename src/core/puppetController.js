@@ -58,7 +58,7 @@ class PuppetController extends Logger {
 		
 		this.log('Controller', 'Refreshing...');
 		
-		await this.page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
+		await this.page.reload({waitUntil:["networkidle0", "domcontentloaded"]});
 		
 		this.log('Controller', 'Refreshed');
 		
@@ -129,14 +129,20 @@ class PuppetController extends Logger {
 	
 	// pad a number with leading numbers for usage in text / strings. 
 	padNum(num, size) {
+		
 		num = num.toString();
+		
 		while (num.length < size) num = "0" + num;
+		
 		return num;
+		
 	}
 	
 	// get around int for usage.
 	getRandomInt(max) {
+		
 		return Math.floor(Math.random() * max);
+		
 	}
 	
 }

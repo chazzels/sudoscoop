@@ -3,7 +3,6 @@ const PuppetController = require('../../src/core/puppetController');
 const InventoryTracker = require('../../src/core/inventoryTracker.js');
 var tracker;
 
-//TODO: send message for notification.
 class BeamWatcher extends PuppetController {
 	
 	constructor(name, startPage, targets) {
