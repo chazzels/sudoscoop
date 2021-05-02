@@ -103,7 +103,7 @@ class BeamWatcher extends PuppetController {
 				}
 				
 				// DEV random price set for change testing.
-				//if(self.getRandomInt(10) == 2) { price = '$'+self.getRandomInt(20)+'.00'; console.log('change', price, name);}
+				if(self.getRandomInt(40) == 2) { price = '$'+self.getRandomInt(20)+'.00'; console.log('change', price, name);}
 				
 				tracker.addItem(productName, name, sku, price, stock);
 				

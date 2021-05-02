@@ -13,11 +13,23 @@ class InventoryTracker extends Logger {
 		
 		super(name);
 		
+		// track the items from a scanner.
 		this.items = new Map();
+		
+		// track all the items seen and any changes that may have occured,
 		this.master = new Map();
+		
+		// tracks the result hashes after an inventory scan.
+		// counts the number of times an hash has been seen.
 		this.fingerprints = new Map();
+		
+		// track the last hash seen by scan.
 		this.lastHash = null;
+		
+		// number of scans checked and hashed.
 		this.scanCount = 0;
+		
+		// running count of many scans have gone unchanged.
 		this.noChangeStreak = 0;
 		
 		// for development. remove when done.
@@ -146,6 +158,7 @@ class InventoryTracker extends Logger {
 	}
 	
 	// compare the hashes to determine if a change occured.
+	//TODO figure out if the data actaully needs to be included in the fingerprint map.
 	checkHash(hash, data) {
 		
 		if(this.fingerprints.has(hash) && this.lastHash == hash) {
@@ -158,26 +171,37 @@ class InventoryTracker extends Logger {
 				
 			this.noChangeStreak += 1;
 			
+			this.fingerprints.set(hash, this.fingerprints.get(hash)+1);
+			
 		} else if(this.fingerprints.has(hash)) { 
 			
 			// old hash match
 			this.log('MapCheck', 'OldHash');
-			this.log('InventoryTracker', 'OldState?');
+			
+			this.log('InventoryTracker', 'Change. Old State.');
+			
 			this.noChangeStreak = 0;
+			
+			this.fingerprints.set(hash, this.fingerprints.get(hash)+1);
 			
 		} else if(this.lastHash == null) { 
 			
 			// first hash
 			this.log('MapCheck', 'FirstHash');
-			this.fingerprints.set(hash, data);
+			
+			this.fingerprints.set(hash, 1);
+			
 			this.noChangeStreak += 1;
 			
 		} else {
 			
 			// new hash
 			this.log('MapCheck', 'NewHash');
+			
 			this.log('InventoryTracker', 'A CHANGE HAS BEEN DETECTED!!!');
-			this.fingerprints.set(hash, data);
+			
+			this.fingerprints.set(hash, 1);
+			
 			this.noChangeStreak = 0;
 			
 		}
