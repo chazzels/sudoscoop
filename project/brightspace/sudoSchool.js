@@ -1,6 +1,9 @@
 const StudentController = require('./studentController');
 const ArgumentProcessor = require('./argumentProcessor');
 
+// TODO: detect current unit week and number.
+// TODO: implement job handling.
+
 class SudoSchool extends StudentController {
 	constructor() {
 		super('SudoSchool', 'https://purdueglobal.brightspace.com');
@@ -24,7 +27,7 @@ class SudoSchool extends StudentController {
 		this.jobs = new ArgumentProcessor(this.args);
 		
 		if(this.jobs.length == 0) {
-			this.log('ArgumentProcessor', 'Arguments Passed. No valid options found.');
+			this.log('ArgumentProcessor', 'Arguments Passed. No options found.');
 		}
 		
 		this.log('Arguments', 'Processed');
@@ -36,7 +39,6 @@ class SudoSchool extends StudentController {
 	async jobHandler() {
 		
 		this.log('JobHandler', this.jobs);
-		
 		
 		// development testing this functionality. 
 		await this.checkNotifcationStatus();
@@ -86,6 +88,7 @@ class SudoSchool extends StudentController {
 	}
 	
 }
+
 SudoSchool.VIRALPOST = 'viralpost';
 SudoSchool.READALLPOSTS = 'readallposts';
 SudoSchool.READALLCONTENT = 'readallcontent';

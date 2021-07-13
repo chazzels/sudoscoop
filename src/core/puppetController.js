@@ -42,9 +42,9 @@ class PuppetController extends Logger {
 	// start the headless browser and open the start page.
 	async initialConnection() {
 		
-		this.log('ConnectionInit', 'Connecting...');
-		
 		await this.createBrowser();
+		
+		this.log('ConnectionInit', 'Connecting...');
 		
 		this.page = await this.browser.newPage();
 		
